@@ -109,7 +109,8 @@ insert into public.estudamed_allowed_emails (email, name, role, active)
 values
   ('joao.jacinto@ufnt.edu.br', 'Joao Jacinto', 'student', true),
   ('raphael.calzada@ufnt.edu.br', 'Raphael Calzada', 'student', true),
-  ('annacarollinnagm@gmail.com', 'Anna Carolinna', 'student', true)
+  ('annacarollinnagm@gmail.com', 'Anna Carolinna', 'student', true),
+   ('jg72005@gmail.com', 'Joao Jacinto', 'student', true)
 on conflict (email) do update set
   name = excluded.name,
   role = excluded.role,
