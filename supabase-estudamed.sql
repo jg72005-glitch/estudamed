@@ -97,3 +97,20 @@ begin
   return new;
 end;
 $$;
+drop trigger if exists estudamed_check_allowed_email on auth.users;
+create trigger estudamed_check_allowed_email
+before insert on auth.users
+for each row execute function public.estudamed_require_allowed_email();
+
+-- Edite esta lista com os e-mails permitidos.
+-- Troque os exemplos pelos e-mails reais antes de criar os acessos.
+insert into public.estudamed_allowed_emails (email, name, role, active)
+values
+  ('joao.jacinto@ufnt.edu.br', 'Joao Jacinto', 'student', true),
+  ('raphael.calzada@ufnt.edu.br', 'Raphael Calzada', 'student', true),
+  ('annacarollinnagm@gmail.com', 'Anna Carolinna', 'student', true),
+   ('jg72005@gmail.com', 'Joao Jacinto', 'student', true)
+on conflict (email) do update set
+  name = excluded.name,
+  role = excluded.role,
+  active = excluded.active;
