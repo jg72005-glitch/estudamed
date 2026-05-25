@@ -1,0 +1,4119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma EstudaMed</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080810;
+  --surface: #0f0f1a;
+  --surface2: #161626;
+  --surface3: #1e1e30;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.13);
+  --accent: #6c5ce7;
+  --accent-glow: rgba(108,92,231,0.35);
+  --accent2: #fd79a8;
+  --accent3: #00cec9;
+  --accent4: #fdcb6e;
+  --accent5: #55efc4;
+  --text: #eeeef8;
+  --text-dim: #a0a0c0;
+  --muted: #555570;
+  --danger: #ff5675;
+  --warning: #fdcb6e;
+  --success: #00cec9;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+  --header-h: 64px;
+  --tabs-h: 52px;
+}
+
+.light-mode {
+  --bg: #f0f0f8;
+  --surface: #ffffff;
+  --surface2: #f5f5fc;
+  --surface3: #eaeaf5;
+  --border: rgba(0,0,0,0.07);
+  --border-hover: rgba(0,0,0,0.13);
+  --text: #16162a;
+  --text-dim: #555570;
+  --muted: #9090b0;
+  --accent-glow: rgba(108,92,231,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 10px; }
+
+header {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--header-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px;
+  background: rgba(8,8,16,0.88);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+}
+.light-mode header { background: rgba(240,240,248,0.9); }
+
+.header-brand { display: flex; align-items: center; gap: 10px; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.header-logo {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+header h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 800;
+  background: linear-gradient(135deg, var(--text) 30%, var(--accent));
+  background-clip: text; -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.streak-badge {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(253,203,110,0.12);
+  border: 1px solid rgba(253,203,110,0.22);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 13px; font-weight: 600;
+  color: var(--accent4);
+  cursor: default;
+}
+
+.tabs {
+  display: flex; gap: 2px;
+  padding: 10px 28px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: var(--header-h);
+  z-index: 90;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px; font-weight: 500;
+  padding: 9px 16px 10px;
+  border-radius: 10px 10px 0 0;
+  border: none; background: transparent;
+  color: var(--muted); cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s, background 0.2s;
+  position: relative;
+}
+.tab::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 10px; right: 10px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tab:hover { color: var(--text-dim); background: var(--surface2); }
+.tab.active { color: var(--text); background: var(--surface2); }
+.tab.active::after { transform: scaleX(1); }
+
+main { max-width: 980px; margin: 0 auto; padding: 28px 24px 60px; }
+
+.panel { display: none; }
+.panel.active { display: block; animation: panelIn 0.28s ease; }
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 18px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.card:hover { border-color: var(--border-hover); }
+
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+}
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.card-title-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+
+.icon-purple { background: rgba(108,92,231,0.15); }
+.icon-pink   { background: rgba(253,121,168,0.15); }
+.icon-teal   { background: rgba(0,206,201,0.15); }
+.icon-yellow { background: rgba(253,203,110,0.15); }
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px; margin-bottom: 20px;
+}
+
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 12px; text-align: center;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+
+.stat-box:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-glow);
+  box-shadow: 0 4px 24px var(--accent-glow);
+}
+
+.stat-box-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  background-clip: text; -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+
+.stat-box-lbl {
+  font-size: 11px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin-top: 5px;
+}
+
+button, .btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px; font-weight: 500;
+  padding: 9px 16px;
+  border-radius: var(--radius-xs);
+  border: none; cursor: pointer;
+  transition: all 0.18s;
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 2px 12px var(--accent-glow);
+}
+.btn-primary:hover { background: #7d6ef0; transform: translateY(-1px); box-shadow: 0 4px 18px var(--accent-glow); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary { background: var(--surface3); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--surface2); border-color: var(--border-hover); }
+
+.btn-danger { background: rgba(255,86,117,0.12); color: var(--danger); border: 1px solid rgba(255,86,117,0.2); }
+.btn-danger:hover { background: rgba(255,86,117,0.22); }
+
+.btn-success { background: rgba(0,206,201,0.12); color: var(--success); border: 1px solid rgba(0,206,201,0.2); }
+.btn-success:hover { background: rgba(0,206,201,0.22); }
+
+.btn-sm { padding: 5px 11px; font-size: 12.5px; }
+
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+
+input[type="text"], input[type="number"], select, textarea {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 9px 13px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(108,92,231,0.5);
+  box-shadow: 0 0 0 3px rgba(108,92,231,0.1);
+}
+
+input::placeholder { color: var(--muted); }
+
+.input-row {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+}
+
+.materia-filter-bar {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.mfb-btn {
+  font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600;
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface3); color: var(--muted);
+  cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.mfb-btn:hover { border-color: var(--border-hover); color: var(--text); }
+.mfb-btn.active {
+  background: var(--surface2); color: var(--text);
+  border-color: var(--border-hover);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.mfb-red.active    { background: rgba(255,86,117,0.12);  color: var(--danger);  border-color: rgba(255,86,117,0.35); }
+.mfb-yellow.active { background: rgba(253,203,110,0.12); color: var(--warning); border-color: rgba(253,203,110,0.35); }
+.mfb-green.active  { background: rgba(0,206,201,0.12);   color: var(--success); border-color: rgba(0,206,201,0.35); }
+
+.mfb-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface3); border-radius: 10px;
+  font-size: 10px; font-weight: 700; min-width: 18px; height: 16px;
+  padding: 0 4px; margin-left: 4px; color: var(--muted);
+}
+.mfb-btn.active .mfb-count { background: rgba(255,255,255,0.1); color: inherit; }
+
+.materias-empty-filter {
+  text-align: center; padding: 32px 20px; color: var(--muted);
+  font-size: 13.5px;
+}
+
+
+.materias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.performance-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.performance-card::after {
+  content: '';
+  position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+  border-radius: 3px 0 0 3px;
+}
+.performance-card.pc-red::after    { background: var(--danger); }
+.performance-card.pc-yellow::after { background: var(--warning); }
+.performance-card.pc-green::after  { background: var(--success); }
+
+.performance-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-hover);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+}
+.performance-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(108,92,231,0.2);
+}
+
+.performance-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px; gap: 8px;
+}
+
+.performance-name {
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14.5px;
+  line-height: 1.3; flex: 1;
+}
+
+.pc-pct-ring {
+  flex-shrink: 0;
+  width: 48px; height: 48px;
+  position: relative;
+}
+.pc-pct-ring svg { transform: rotate(-90deg); }
+.pc-pct-ring-bg  { fill: none; stroke: var(--surface3); stroke-width: 4; }
+.pc-pct-ring-fill { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 0.7s ease; }
+.ring-red    { stroke: var(--danger); }
+.ring-yellow { stroke: var(--warning); }
+.ring-green  { stroke: var(--success); }
+.pc-pct-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800;
+}
+
+.pc-numbers {
+  display: flex; gap: 6px; margin-bottom: 10px;
+}
+.pc-num {
+  flex: 1; background: var(--surface3); border-radius: 8px;
+  padding: 8px 6px; text-align: center;
+}
+.pc-num strong {
+  display: block; font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700;
+}
+.pc-num span { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.pcn-green strong { color: var(--success); }
+.pcn-red   strong { color: var(--danger); }
+.pcn-acc   strong { color: var(--accent); }
+
+.pc-bar-wrap { margin-bottom: 10px; }
+.pc-bar-label {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 5px; font-size: 11px; color: var(--muted);
+}
+.progress-track {
+  height: 5px; background: var(--surface3);
+  border-radius: 10px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 10px;
+  transition: width 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.fill-green  { background: linear-gradient(90deg, #00cec9, #55efc4); }
+.fill-yellow { background: linear-gradient(90deg, #fdcb6e, #ffeaa7); }
+.fill-red    { background: linear-gradient(90deg, #ff5675, #ff99aa); }
+
+.pc-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 10px; border-top: 1px solid var(--border);
+}
+.pc-status-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.pc-status-label { font-size: 11.5px; font-weight: 500; flex: 1; margin-left: 7px; }
+.pc-status-red    .pc-status-dot { background: var(--danger); }
+.pc-status-red    .pc-status-label { color: var(--danger); }
+.pc-status-yellow .pc-status-dot { background: var(--warning); }
+.pc-status-yellow .pc-status-label { color: var(--warning); }
+.pc-status-green  .pc-status-dot { background: var(--success); }
+.pc-status-green  .pc-status-label { color: var(--success); }
+.pc-detail-btn {
+  font-size: 11px; padding: 4px 9px; border-radius: 6px;
+  background: var(--surface3); border: 1px solid var(--border);
+  color: var(--text-dim); cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.pc-detail-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.diag-list { display: flex; flex-direction: column; gap: 7px; }
+.diag-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface2); border-radius: 10px;
+  padding: 12px 14px;
+  border-left: 3px solid;
+  transition: transform 0.15s;
+  cursor: pointer;
+}
+.diag-row:hover { transform: translateX(3px); }
+.diag-alta  { border-color: var(--danger); }
+.diag-media { border-color: var(--warning); }
+.diag-baixa { border-color: var(--success); }
+.diag-row-icon { font-size: 18px; flex-shrink: 0; }
+.diag-row-body { flex: 1; min-width: 0; }
+.diag-row-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13.5px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.diag-row-desc { font-size: 12px; color: var(--muted); }
+.diag-row-pct  { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; flex-shrink: 0; }
+.diag-row.diag-alta  .diag-row-pct { color: var(--danger); }
+.diag-row.diag-media .diag-row-pct { color: var(--warning); }
+.diag-row.diag-baixa .diag-row-pct { color: var(--success); }
+
+.detail-panel-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.detail-panel-overlay.open { opacity: 1; pointer-events: all; }
+
+.detail-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 301;
+  width: 380px; max-width: 96vw;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.16,1,0.3,1);
+  display: flex; flex-direction: column;
+  box-shadow: -16px 0 50px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.detail-panel.open { transform: translateX(0); }
+
+.detail-panel-header {
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.detail-panel-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  margin-bottom: 6px;
+}
+.detail-panel-name {
+  font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
+  line-height: 1.2; flex: 1;
+}
+.detail-panel-close {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: 8px; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--muted); font-size: 14px;
+  transition: background 0.15s, color 0.15s; flex-shrink: 0;
+}
+.detail-panel-close:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+.detail-panel-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; padding: 3px 10px;
+  border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.detail-panel-badge.dp-red    { background: rgba(255,86,117,0.12); color: var(--danger); border: 1px solid rgba(255,86,117,0.2); }
+.detail-panel-badge.dp-yellow { background: rgba(253,203,110,0.12); color: var(--warning); border: 1px solid rgba(253,203,110,0.2); }
+.detail-panel-badge.dp-green  { background: rgba(0,206,201,0.12); color: var(--success); border: 1px solid rgba(0,206,201,0.2); }
+
+.detail-panel-body {
+  flex: 1; overflow-y: auto; padding: 20px 22px;
+}
+
+.dp-big-ring {
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px; margin-bottom: 24px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 20px;
+}
+.dp-ring-wrap { position: relative; width: 100px; height: 100px; }
+.dp-ring-wrap svg { transform: rotate(-90deg); }
+.dp-ring-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.dp-ring-pct { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; line-height: 1; }
+.dp-ring-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+.dp-ring-stats { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.dp-ring-stat { display: flex; align-items: center; gap: 10px; }
+.dp-ring-stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dp-ring-stat-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; line-height: 1; min-width: 40px; }
+.dp-ring-stat-lbl { font-size: 11.5px; color: var(--muted); }
+
+.dp-section { margin-bottom: 18px; }
+.dp-section-title {
+  font-size: 10.5px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.dp-section-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+.dp-bar-wrap { margin-bottom: 4px; }
+.dp-bar-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--muted); margin-bottom: 6px;
+}
+.dp-bar-track {
+  height: 8px; background: var(--surface3);
+  border-radius: 10px; overflow: hidden; margin-bottom: 6px;
+}
+.dp-bar-fill {
+  height: 100%; border-radius: 10px;
+  transition: width 0.7s ease;
+}
+.dp-bar-sub { font-size: 11.5px; color: var(--muted); }
+
+.dp-rev-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dp-rev-chip {
+  font-size: 12px; font-weight: 500;
+  background: rgba(253,121,168,0.1); border: 1px solid rgba(253,121,168,0.2);
+  color: var(--accent2); border-radius: 8px; padding: 6px 12px;
+  display: flex; align-items: center; gap: 5px;
+}
+
+.dp-insight {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  font-size: 13px; line-height: 1.6; color: var(--text-dim);
+  border-left: 3px solid;
+}
+.dp-insight.dp-insight-red    { border-color: var(--danger); }
+.dp-insight.dp-insight-yellow { border-color: var(--warning); }
+.dp-insight.dp-insight-green  { border-color: var(--success); }
+.dp-insight strong { color: var(--text); }
+
+.dp-actions {
+  padding: 16px 22px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 8px; flex-shrink: 0;
+  background: var(--surface);
+}
+
+.badge { font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
+.badge-alta  { background: rgba(255,86,117,0.12); color: var(--danger); border: 1px solid rgba(255,86,117,0.2); }
+.badge-media { background: rgba(253,203,110,0.12); color: var(--warning); border: 1px solid rgba(253,203,110,0.2); }
+.badge-baixa { background: rgba(0,206,201,0.12); color: var(--success); border: 1px solid rgba(0,206,201,0.2); }
+
+.perf-stats { display: grid; grid-template-columns: repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.perf-stat { background:var(--surface3); border-radius:8px; padding:10px; text-align:center; }
+.perf-stat strong { display:block; font-size:20px; font-weight:700; font-family:'Syne',sans-serif; }
+.perf-stat small { font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; }
+.stat-green strong { color:var(--success); }
+.stat-red   strong { color:var(--danger); }
+.stat-purple strong { color:var(--accent); }
+.perf-status { font-size:12.5px; font-weight:500; }
+.status-excelente { color:var(--success); }
+.status-bom       { color:var(--warning); }
+.status-critico   { color:var(--danger); }
+.card-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+.diag-card { background:var(--surface2); border-radius:var(--radius-sm); padding:16px; margin-bottom:9px; border-left:3px solid; transition:transform 0.2s; }
+.diag-card:hover { transform:translateX(3px); }
+.diag-alta  { border-color:var(--danger); }
+.diag-media { border-color:var(--warning); }
+.diag-baixa { border-color:var(--success); }
+.diag-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+.diag-name { font-family:'Syne',sans-serif; font-weight:700; display:flex; align-items:center; gap:7px; }
+.diag-pct { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; }
+.diag-plan { font-size:12.5px; color:var(--muted); line-height:1.5; }
+
+.meta-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px; margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.meta-card:hover { border-color: var(--border-hover); }
+
+.meta-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 9px;
+}
+
+.meta-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14.5px; }
+
+.meta-status {
+  font-size: 11.5px; font-weight: 600;
+  padding: 2px 8px; border-radius: 20px;
+}
+
+.meta-atrasado { color: var(--danger);  background: rgba(255,86,117,0.1); }
+.meta-ritmo    { color: var(--warning); background: rgba(253,203,110,0.1); }
+.meta-batida   { color: var(--success); background: rgba(0,206,201,0.1); }
+
+.meta-nums {
+  display: flex; justify-content: space-between;
+  font-size: 12.5px; color: var(--muted); margin-bottom: 7px;
+}
+
+.meta-track {
+  height: 7px; background: var(--surface3);
+  border-radius: 10px; overflow: hidden; margin-bottom: 11px;
+}
+
+.meta-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.7s ease;
+}
+
+.meta-fill.fill-red    { background: linear-gradient(90deg, #ff5675, #ff99aa); }
+.meta-fill.fill-yellow { background: linear-gradient(90deg, #fdcb6e, #ffeaa7); }
+.meta-fill.fill-green  { background: linear-gradient(90deg, var(--accent), var(--success)); }
+
+.meta-actions { display: flex; gap: 7px; }
+
+.rev-card {
+  border-radius: var(--radius-sm);
+  padding: 14px 18px; margin-bottom: 9px;
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.rev-card:hover { transform: translateX(3px); box-shadow: 0 2px 16px rgba(0,0,0,0.15); }
+
+.rev-atrasada { background: rgba(255,86,117,0.06);  border-left: 3px solid var(--danger); }
+.rev-hoje     { background: rgba(253,203,110,0.06); border-left: 3px solid var(--accent4); }
+.rev-futura   { background: rgba(0,206,201,0.06); border-left: 3px solid var(--success); }
+.rev-feita    { opacity: 0.45; }
+
+.rev-info { flex: 1; }
+.rev-name { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 3px; font-size: 14.5px; }
+.rev-date { font-size: 12.5px; color: var(--muted); }
+
+.rev-tag {
+  font-size: 10.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  margin-right: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+.tag-atrasada { background: rgba(255,86,117,0.15); color: var(--danger); }
+.tag-hoje     { background: rgba(253,203,110,0.15); color: var(--accent4); }
+.tag-futura   { background: rgba(0,206,201,0.15); color: var(--success); }
+
+.rev-btns { display: flex; gap: 6px; flex-shrink: 0; }
+
+.hist-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--success);
+  border-radius: var(--radius-sm);
+  padding: 14px; margin-bottom: 9px;
+  transition: transform 0.2s;
+}
+.hist-card:hover { transform: translateX(3px); }
+.hist-name  { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 5px; }
+.hist-dates { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+.dia-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px; margin-bottom: 11px;
+}
+
+.dia-header {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 10px; padding-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+  text-transform: capitalize;
+}
+
+.evento {
+  display: grid;
+  grid-template-columns: 80px 1fr 65px 90px;
+  gap: 8px; padding: 8px 11px;
+  border-radius: 8px; margin-bottom: 5px;
+  font-size: 13.5px; align-items: center;
+  transition: opacity 0.2s;
+}
+
+.evento-estudo  { background: rgba(108,92,231,0.09); border-left: 2px solid var(--accent); }
+.evento-revisao { background: rgba(253,121,168,0.09); border-left: 2px solid var(--accent2); }
+.evento.feito   { opacity: 0.4; }
+
+.carga-total {
+  font-size: 11.5px; color: var(--muted);
+  text-align: right; margin-top: 7px; padding-top: 7px;
+  border-top: 1px solid var(--border);
+}
+
+.pomo-wrap { text-align: center; padding: 10px 0 24px; }
+
+.pomo-etapa {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--muted); margin-bottom: 12px;
+}
+
+.pomo-timer {
+  font-family: 'Syne', sans-serif;
+  font-size: 80px; font-weight: 800;
+  letter-spacing: -0.05em;
+  background: linear-gradient(135deg, var(--text) 20%, var(--accent) 80%);
+  background-clip: text; -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px; line-height: 1;
+}
+
+.pomo-ciclos { font-size: 12.5px; color: var(--muted); margin-bottom: 24px; }
+
+.pomo-dots {
+  display: flex; justify-content: center; gap: 9px; margin-bottom: 24px;
+}
+
+.pomo-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--surface3);
+  transition: background 0.3s, transform 0.3s;
+}
+
+.pomo-dot.ativo {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  transform: scale(1.2);
+}
+
+.pomo-btns { display: flex; justify-content: center; gap: 9px; flex-wrap: wrap; }
+
+.pomo-materia-select {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; justify-content: center;
+  font-size: 13px; color: var(--muted);
+}
+
+.pomo-materia-select select { min-width: 180px; }
+
+.charts-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+
+.chart-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+
+.chart-label { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-bottom: 12px; }
+canvas { border-radius: 6px; max-height: 220px; }
+
+.hist-meta-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px; margin-bottom: 9px;
+}
+
+.hist-meta-header {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700; margin-bottom: 9px;
+  color: var(--muted); font-size: 13.5px;
+}
+
+.hist-meta-row {
+  display: flex; justify-content: space-between;
+  font-size: 12.5px; padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.hist-meta-row:last-child { border: none; }
+
+.concluida-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px; margin-bottom: 7px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.concluida-nome { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
+.concluida-data { font-size: 11.5px; color: var(--muted); }
+
+.empty { text-align: center; padding: 44px 20px; color: var(--muted); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-text { font-size: 14px; }
+
+.toast-wrap {
+  position: fixed; bottom: 20px; right: 20px;
+  z-index: 9999; display: flex; flex-direction: column; gap: 7px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 18px;
+  font-size: 13.5px; font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  display: flex; align-items: center; gap: 9px;
+  animation: toastIn 0.25s ease, toastOut 0.3s ease 2.8s forwards;
+  pointer-events: auto; max-width: 300px;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(36px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(36px); }
+}
+
+.danger-zone {
+  border: 1px dashed rgba(255,86,117,0.22);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+
+.danger-zone-text h3 {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  color: var(--danger); margin-bottom: 4px;
+}
+
+.danger-zone-text p { font-size: 12.5px; color: var(--muted); }
+
+.filter-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; flex-wrap: wrap;
+}
+
+.filter-label { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+
+.sub-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px; margin-bottom: 12px;
+}
+
+.sub-title {
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.1em; margin-bottom: 13px;
+}
+
+.study-timer {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-top: 10px;
+}
+
+.study-timer-display {
+  font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+  color: var(--accent); min-width: 60px;
+}
+
+.study-timer-label { font-size: 12.5px; color: var(--muted); flex: 1; }
+
+.config-section { margin-bottom: 18px; }
+.config-section-title {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+
+.config-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+
+.config-row:last-child { border: none; }
+
+.config-label { font-size: 14px; font-weight: 500; }
+.config-sublabel { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.import-export-row {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+}
+
+.semana-info {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-xs); padding: 8px 14px;
+  font-size: 13px; color: var(--muted); margin-bottom: 14px;
+}
+
+.semana-info strong { color: var(--text); }
+
+@media (max-width: 640px) {
+  header { padding: 0 16px; }
+  .tabs  { padding: 8px 12px 0; }
+  main   { padding: 18px 14px 50px; }
+  header h1 { font-size: 15px; }
+  .stats-bar  { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+  .perf-stats { grid-template-columns: repeat(3, 1fr); }
+  .pomo-timer { font-size: 60px; }
+  .evento { grid-template-columns: 70px 1fr 55px 80px; font-size: 12.5px; }
+  .danger-zone { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .streak-badge { display: none; }
+  .materias-grid { grid-template-columns: 1fr; }
+}
+
+.kbd {
+  display: inline-flex; align-items: center;
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: 5px; padding: 1px 6px;
+  font-size: 11px; font-family: monospace; color: var(--muted);
+  margin-left: 4px;
+}
+
+.toggle-wrap { display: flex; align-items: center; gap: 10px; }
+
+.toggle {
+  position: relative; width: 42px; height: 24px;
+  cursor: pointer;
+}
+
+.toggle input { opacity: 0; width: 0; height: 0; }
+
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: var(--surface3); border-radius: 24px;
+  transition: 0.3s; border: 1px solid var(--border);
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute; width: 16px; height: 16px;
+  left: 4px; bottom: 3px;
+  background: var(--muted); border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(18px); background: #fff;
+}
+
+.agenda-stats-top {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.ast-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  display: flex; flex-direction: column; gap: 3px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ast-item:hover { border-color: var(--border-hover); box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+.ast-item-prog { gap: 6px; }
+.ast-prog-top { display: flex; align-items: baseline; gap: 8px; }
+.ast-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px; font-weight: 800; line-height: 1;
+  color: var(--text);
+}
+.ast-lbl { font-size: 11px; color: var(--muted); }
+.ast-mini-bar {
+  height: 4px; background: var(--surface3); border-radius: 10px; overflow: hidden;
+}
+.ast-mini-fill {
+  height: 100%; border-radius: 10px;
+  background: var(--accent);
+  transition: width 0.5s ease;
+}
+
+.agenda-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+.agenda-toolbar-right { display: flex; gap: 8px; flex-shrink: 0; }
+
+.agenda-view-toggle {
+  display: flex;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 3px;
+}
+.avt-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 7px 16px;
+  border: none; background: transparent;
+  color: var(--muted); cursor: pointer;
+  border-radius: 9px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.avt-btn:hover { color: var(--text-dim); background: var(--surface3); }
+.avt-btn.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+.semana-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 14px; margin-bottom: 14px; gap: 12px;
+}
+.snav-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 700;
+  padding: 6px 14px; border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface3);
+  color: var(--text-dim); cursor: pointer;
+  transition: all 0.2s;
+}
+.snav-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.snav-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--text);
+  text-align: center; flex: 1;
+}
+
+.semana-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.sem-col {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  min-height: 160px;
+  transition: border-color 0.2s;
+}
+.sem-col:hover { border-color: var(--border-hover); }
+.sem-fds { opacity: 0.7; }
+.sem-passado { opacity: 0.5; }
+.sem-hoje {
+  border-color: rgba(108,92,231,0.5) !important;
+  box-shadow: 0 0 0 1px rgba(108,92,231,0.2), 0 4px 20px rgba(108,92,231,0.1);
+  background: rgba(108,92,231,0.04) !important;
+}
+.sem-completo { border-color: rgba(0,206,201,0.3) !important; }
+
+.sem-col-header {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 4px 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface3);
+  gap: 3px; position: relative;
+}
+.sem-dia-nome {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--muted);
+}
+.sem-dia-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 800;
+  color: var(--text-dim); line-height: 1;
+}
+.num-hoje {
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 50%;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.sem-hoje-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent);
+  position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+}
+
+.sem-col-body {
+  flex: 1;
+  padding: 5px 4px;
+  display: flex; flex-direction: column; gap: 3px;
+  overflow: hidden;
+}
+.sem-vazio {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: var(--muted); font-size: 12px;
+  padding: 8px 0;
+}
+.sem-col-footer {
+  font-size: 10px; color: var(--muted); font-weight: 600;
+  text-align: center;
+  padding: 4px;
+  border-top: 1px solid var(--border);
+  background: var(--surface3);
+}
+
+.ev-pill {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 10.5px; font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.2s, transform 0.1s;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ev-pill:hover { transform: scale(1.03); }
+.ev-pill:active { transform: scale(0.97); }
+.ev-pill-estudo {
+  background: rgba(108,92,231,0.15);
+  border-color: rgba(108,92,231,0.25);
+  color: var(--accent);
+}
+.ev-pill-revisao {
+  background: rgba(0,206,201,0.12);
+  border-color: rgba(0,206,201,0.2);
+  color: var(--accent3);
+}
+.ev-pill-done { opacity: 0.4; text-decoration: line-through; }
+.evp-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-estudo  { background: var(--accent); }
+.dot-revisao { background: var(--accent3); }
+.evp-nome { overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.evp-check { color: var(--success); font-size: 9px; flex-shrink: 0; }
+
+.sem-empty-week {
+  text-align: center; padding: 20px;
+  color: var(--muted); font-size: 13px;
+  background: var(--surface2); border-radius: var(--radius-sm);
+  margin-top: 8px; border: 1px dashed var(--border);
+}
+.sem-empty-week span { font-size: 22px; display: block; margin-bottom: 6px; }
+.sem-empty-week small { font-size: 12px; opacity: 0.7; }
+
+.sem-legenda {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  padding: 10px 4px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.sem-leg-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11.5px; color: var(--muted);
+}
+.sem-leg-done .evp-check { color: var(--success); font-size: 11px; }
+
+.dia-card-new {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dia-card-new:hover { border-color: var(--border-hover); }
+.dia-hoje {
+  border-color: rgba(108,92,231,0.4) !important;
+  box-shadow: 0 0 0 1px rgba(108,92,231,0.12), 0 4px 24px rgba(108,92,231,0.08);
+}
+.dia-completo { border-color: rgba(0,206,201,0.3) !important; opacity: 0.82; }
+.dia-passado  { opacity: 0.6; }
+
+.dia-header-new {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2); gap: 10px; flex-wrap: wrap;
+}
+.dia-header-left  { display: flex; align-items: center; gap: 8px; }
+.dia-header-right { display: flex; align-items: center; gap: 8px; }
+
+.dia-hoje-badge {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; font-size: 10px; font-weight: 800;
+  font-family: 'Syne', sans-serif;
+  padding: 3px 8px; border-radius: 6px; letter-spacing: 0.04em;
+}
+.dia-nome {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--text); text-transform: capitalize;
+}
+.dia-count { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+
+.dia-load-badge { font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.load-low  { background: rgba(0,206,201,0.13);  color: var(--success); border: 1px solid rgba(0,206,201,0.2); }
+.load-med  { background: rgba(253,203,110,0.13); color: var(--warning); border: 1px solid rgba(253,203,110,0.2); }
+.load-high { background: rgba(253,121,168,0.13); color: var(--accent2); border: 1px solid rgba(253,121,168,0.2); }
+.load-full { background: rgba(255,86,117,0.13);  color: var(--danger);  border: 1px solid rgba(255,86,117,0.2); }
+
+.dia-prog-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px 0;
+}
+.dia-prog-track {
+  flex: 1; height: 4px; background: var(--surface3); border-radius: 10px; overflow: hidden;
+}
+.dia-prog-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
+.fill-green  { background: var(--success); }
+.fill-yellow { background: var(--warning); }
+.fill-red    { background: var(--danger); }
+.fill-muted  { background: var(--surface3); }
+.dia-prog-pct { font-size: 11px; font-weight: 700; color: var(--muted); min-width: 30px; text-align: right; }
+
+.dia-eventos { padding: 10px 14px; display: flex; flex-direction: column; gap: 7px; }
+
+.agenda-evento {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface2);
+  gap: 10px; transition: opacity 0.2s, border-color 0.2s;
+}
+.agenda-evento:hover { border-color: var(--border-hover); }
+.agenda-evento.ev-feito { opacity: 0.42; }
+.ev-estudo  { border-left: 3px solid var(--accent)  !important; }
+.ev-revisao { border-left: 3px solid var(--accent3) !important; }
+.prio-alta  { background: rgba(255,86,117,0.05)  !important; }
+.prio-media { background: rgba(253,203,110,0.05) !important; }
+.prio-baixa { background: rgba(0,206,201,0.05)   !important; }
+
+.ev-left  { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.ev-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.ev-tipo-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+.badge-estudo  { background: rgba(108,92,231,0.15); color: var(--accent); }
+.badge-revisao { background: rgba(0,206,201,0.15);  color: var(--accent3); }
+
+.ev-materia { font-size: 13.5px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev-prio    { font-size: 14px; }
+.ev-dur     { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+.ev-btn {
+  border: none; cursor: pointer; font-size: 12px; font-weight: 700;
+  padding: 5px 12px; border-radius: 8px;
+  transition: opacity 0.2s, transform 0.15s; white-space: nowrap;
+}
+.ev-btn:hover { opacity: 0.85; transform: scale(1.04); }
+.ev-btn-pending { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+.ev-btn-done    { background: rgba(0,206,201,0.15); color: var(--success); }
+
+.dia-footer {
+  display: flex; justify-content: space-between;
+  padding: 8px 18px 12px; font-size: 12px; color: var(--muted);
+  border-top: 1px solid var(--border); margin-top: 4px;
+}
+
+@media (max-width: 760px) {
+  .semana-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .sem-dia-num { font-size: 14px; }
+  .ev-pill { font-size: 9.5px; padding: 2px 4px; }
+  .evp-dot { width: 5px; height: 5px; }
+  .agenda-stats-top { grid-template-columns: repeat(2, 1fr); }
+  .ast-item-prog { grid-column: span 2; }
+}
+@media (max-width: 540px) {
+  .dia-header-new { flex-direction: column; align-items: flex-start; }
+  .dia-header-right { width: 100%; justify-content: flex-start; }
+  .ev-left { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .ev-right { flex-wrap: wrap; }
+  .semana-grid { grid-template-columns: repeat(4, 1fr); }
+  .semana-grid .sem-col:nth-child(5),
+  .semana-grid .sem-col:nth-child(6),
+  .semana-grid .sem-col:nth-child(7) { display: none; }
+  .agenda-toolbar { flex-direction: column; align-items: flex-start; }
+  .agenda-toolbar-right { width: 100%; }
+}
+
+.agenda-barra-filtro {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+.abf-left  { display: flex; align-items: center; gap: 8px; }
+.abf-right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.abf-select {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px; padding: 6px 10px;
+  cursor: pointer; outline: none;
+  transition: border-color 0.2s;
+}
+.abf-select:focus { border-color: var(--accent); }
+.abf-atrasados {
+  background: rgba(255,86,117,0.15);
+  color: var(--danger); border: 1px solid rgba(255,86,117,0.25);
+  font-size: 12px; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px;
+}
+
+.agenda-carga-semana {
+  font-size: 12.5px; color: var(--muted);
+  margin-bottom: 14px; padding: 8px 12px;
+  background: var(--surface2); border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+}
+.agenda-carga-semana strong { color: var(--text); }
+
+.dia-atrasado-badge {
+  background: rgba(255,86,117,0.18);
+  color: var(--danger); font-size: 10px; font-weight: 800;
+  font-family: 'Syne', sans-serif;
+  padding: 3px 8px; border-radius: 6px; letter-spacing: 0.04em;
+}
+
+.dia-footer { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); margin-top: 4px; }
+.dia-footer-actions { display: flex; gap: 6px; align-items: center; }
+.dia-action-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px; font-weight: 700;
+  padding: 4px 10px; border-radius: 7px;
+  border: 1px solid var(--border); cursor: pointer;
+  transition: all 0.18s;
+}
+.dia-action-marcar  { background: rgba(0,206,201,0.1);  color: var(--success); }
+.dia-action-marcar:hover { background: var(--success); color: #fff; border-color: var(--success); }
+.dia-action-desfazer { background: var(--surface3); color: var(--muted); }
+.dia-action-desfazer:hover { background: var(--surface2); color: var(--text-dim); }
+.dia-action-add {
+  background: rgba(108,92,231,0.1); color: var(--accent);
+  border-color: rgba(108,92,231,0.2); font-size: 16px; padding: 2px 8px; line-height: 1;
+}
+.dia-action-add:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.ev-menu-wrap { position: relative; }
+.ev-menu-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--muted); font-size: 16px; line-height: 1;
+  padding: 2px 5px; border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.ev-menu-btn:hover { background: var(--surface3); color: var(--text); }
+.ev-dropdown {
+  display: none; flex-direction: column;
+  position: absolute; right: 0; top: calc(100% + 4px);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-width: 140px; z-index: 200;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  overflow: hidden;
+}
+.ev-dropdown.open { display: flex; }
+.ev-dropdown button {
+  background: transparent; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  color: var(--text-dim); padding: 9px 14px; text-align: left;
+  transition: background 0.15s;
+}
+.ev-dropdown button:hover { background: var(--surface3); color: var(--text); }
+.ev-dropdown .ev-dd-danger { color: var(--danger) !important; }
+.ev-dropdown .ev-dd-danger:hover { background: rgba(255,86,117,0.1) !important; }
+
+.ev-reag-badge {
+  font-size: 10px; font-weight: 700;
+  background: rgba(253,203,110,0.15); color: var(--warning);
+  border: 1px solid rgba(253,203,110,0.2);
+  padding: 1px 5px; border-radius: 5px; margin-left: 5px;
+}
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.22s ease;
+  padding: 20px;
+}
+.modal-overlay.modal-open { opacity: 1; }
+.modal-overlay.modal-open .modal-box { transform: translateY(0); }
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%; max-width: 420px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  transform: translateY(20px);
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  overflow: hidden;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.modal-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+.modal-close {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--muted); font-size: 16px; padding: 2px 6px;
+  border-radius: 6px; transition: background 0.15s;
+}
+.modal-close:hover { background: var(--surface3); color: var(--text); }
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+}
+.modal-field { display: flex; flex-direction: column; gap: 6px; }
+.modal-field label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.modal-field select,
+.modal-field input[type="date"],
+.modal-field input[type="number"] {
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 9px 12px; outline: none; width: 100%;
+  transition: border-color 0.2s;
+}
+.modal-field select:focus,
+.modal-field input:focus { border-color: var(--accent); }
+.modal-radio-group { display: flex; gap: 16px; }
+.modal-radio {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13.5px; font-weight: 500; cursor: pointer;
+}
+.modal-radio input[type="radio"] { accent-color: var(--accent); width: 14px; height: 14px; }
+
+</style>
+<style>
+
+[hidden] { display: none !important; }
+body.auth-open {
+  background:
+    radial-gradient(circle at top left, rgba(108, 92, 231, 0.28), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(0, 206, 201, 0.22), transparent 32%),
+    linear-gradient(135deg, #eef4ff 0%, #f9fbff 48%, #eaf8ff 100%);
+}
+.auth-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  color: #182033;
+}
+.auth-layout {
+  width: min(1040px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 28px;
+  align-items: stretch;
+}
+.auth-intro,
+.auth-card-login {
+  border: 1px solid rgba(35, 78, 125, 0.14);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 24px 70px rgba(26, 63, 108, 0.16);
+  backdrop-filter: blur(22px);
+  border-radius: 28px;
+}
+.auth-intro {
+  padding: 44px;
+  display: grid;
+  align-content: center;
+  gap: 22px;
+}
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  color: #183b74;
+}
+.auth-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #2f73ff, #00b8d4);
+  color: white;
+  box-shadow: 0 18px 36px rgba(47, 115, 255, 0.28);
+}
+.auth-intro h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(30px, 5vw, 58px);
+  line-height: 0.98;
+  letter-spacing: 0;
+  color: #10182a;
+}
+.auth-intro p,
+.auth-muted {
+  color: #5c6981;
+  line-height: 1.65;
+}
+.auth-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.auth-pills span {
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(47, 115, 255, 0.09);
+  color: #2454a6;
+  font-size: 13px;
+  font-weight: 800;
+}
+.auth-card-login {
+  padding: 30px;
+  display: grid;
+  gap: 18px;
+}
+.auth-card-login h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  color: #10182a;
+}
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 16px;
+  background: rgba(24, 59, 116, 0.07);
+}
+.auth-tab {
+  border: 0;
+  border-radius: 12px;
+  padding: 11px 12px;
+  background: transparent;
+  color: #49617f;
+  font-weight: 800;
+  cursor: pointer;
+}
+.auth-tab.active {
+  background: #ffffff;
+  color: #183b74;
+  box-shadow: 0 10px 22px rgba(26, 63, 108, 0.12);
+}
+.auth-form {
+  display: grid;
+  gap: 13px;
+}
+.auth-field {
+  display: grid;
+  gap: 7px;
+}
+.auth-field label {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #51627c;
+}
+.auth-input {
+  width: 100%;
+  border: 1px solid rgba(35, 78, 125, 0.14);
+  background: rgba(255,255,255,0.86);
+  color: #162238;
+  border-radius: 14px;
+  padding: 13px 14px;
+  outline: none;
+  font: inherit;
+}
+.auth-input:focus {
+  border-color: #2f73ff;
+  box-shadow: 0 0 0 4px rgba(47, 115, 255, 0.14);
+}
+.auth-action {
+  border: 0;
+  border-radius: 15px;
+  padding: 13px 15px;
+  font-weight: 900;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, #245ef2, #00a8c7);
+  box-shadow: 0 16px 34px rgba(36, 94, 242, 0.23);
+}
+.auth-secondary {
+  background: rgba(24, 59, 116, 0.07);
+  color: #183b74;
+  box-shadow: none;
+}
+.auth-reset-panel {
+  border: 1px solid rgba(35, 78, 125, 0.12);
+  background: rgba(245,249,255,0.9);
+  border-radius: 18px;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+.auth-reset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.auth-message {
+  min-height: 20px;
+  color: #2454a6;
+  font-size: 13px;
+  font-weight: 800;
+}
+.planner-shell {
+  min-height: 100vh;
+}
+.planner-shell header h1 {
+  background: linear-gradient(135deg, #e8fbff 10%, #6ce5f0 42%, #8ea7ff 88%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+.planner-shell .header-logo {
+  background:
+    linear-gradient(135deg, rgba(0,206,201,0.95), rgba(108,92,231,0.95)),
+    radial-gradient(circle at 35% 20%, rgba(255,255,255,0.8), transparent 34%);
+  border-radius: 14px;
+}
+.light-mode .planner-shell header h1 {
+  background: linear-gradient(135deg, #10295c 8%, #1668d9 52%, #00a8c7 92%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+.estudamed-user-chip {
+  max-width: 220px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.question-counter {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(0,206,201,0.14), rgba(108,92,231,0.18)),
+    var(--surface2);
+  border: 1px solid var(--border-hover);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+}
+.qc-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--accent3), var(--accent));
+  color: #fff;
+  font-weight: 900;
+  font-size: 18px;
+}
+.question-counter strong {
+  display: block;
+  font-family: 'Syne', sans-serif;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text);
+}
+.question-counter small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+@media (min-width: 861px) {
+  .planner-shell {
+    --side-w: 228px;
+  }
+  .planner-shell header {
+    margin-left: var(--side-w);
+    width: calc(100% - var(--side-w));
+    padding-left: 24px;
+  }
+  .planner-shell .tabs {
+    position: fixed;
+    z-index: 105;
+    inset: 0 auto 0 0;
+    width: var(--side-w);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 22px 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(0,206,201,0.18), transparent 32%),
+      linear-gradient(180deg, rgba(22,22,38,0.98), rgba(8,8,16,0.98));
+    backdrop-filter: blur(24px);
+  }
+  .light-mode .planner-shell .tabs {
+    background:
+      radial-gradient(circle at 20% 10%, rgba(0,206,201,0.18), transparent 32%),
+      linear-gradient(180deg, rgba(255,255,255,0.98), rgba(235,240,252,0.98));
+  }
+  .planner-shell .tabs::before {
+    content: "EstudaMed";
+    display: block;
+    padding: 4px 8px 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .planner-shell .tab {
+    width: 100%;
+    border-radius: 14px;
+    padding: 12px 13px;
+    text-align: left;
+    white-space: normal;
+    line-height: 1.25;
+  }
+  .planner-shell .tab::after {
+    inset: 9px auto 9px 0;
+    width: 3px;
+    height: auto;
+    border-radius: 99px;
+    transform: scaleY(0);
+  }
+  .planner-shell .tab.active::after {
+    transform: scaleY(1);
+  }
+  .planner-shell main {
+    max-width: 1120px;
+    margin-left: var(--side-w);
+    margin-right: auto;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .planner-shell .toast-wrap {
+    left: calc(var(--side-w) + 18px);
+  }
+}
+@media (max-width: 860px) {
+  .auth-layout { grid-template-columns: 1fr; }
+  .auth-intro { padding: 30px; }
+  .auth-reset-grid { grid-template-columns: 1fr; }
+  .planner-shell .tabs {
+    top: var(--header-h);
+  }
+  .question-counter {
+    min-width: 154px;
+    margin-top: 0;
+    padding: 9px 11px;
+  }
+  .qc-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+  .question-counter strong {
+    font-size: 18px;
+  }
+}
+@media (max-width: 620px) {
+  .auth-screen { padding: 16px; }
+  .auth-card-login { padding: 22px; }
+  .auth-intro h1 { font-size: 34px; }
+  .estudamed-user-chip { display: none; }
+}
+.estudamed-extra-charts .chart-box {
+  min-height: 310px;
+}
+.chart-empty-note {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  margin-top: 10px;
+  min-height: 18px;
+}
+.agenda-toolbar-right .btn {
+  white-space: nowrap;
+}
+
+</style>
+</head>
+<body>
+<div id="plannerShell" class="planner-shell">
+<div class="toast-wrap" id="toastWrap"></div>
+
+<header>
+  <div class="header-brand">
+    <div class="header-logo" aria-hidden="true">🩺</div>
+    <h1>Plataforma EstudaMed</h1>
+  </div>
+  <div class="header-actions">
+    <div class="streak-badge" id="streakBadge" title="Dias consecutivos de estudo">🔥 <span id="streakCount">0</span> dias</div>
+    <button id="toggleTheme" class="btn btn-secondary btn-sm">🌙 Tema</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-painel="desempenho" onclick="mostrarPainel('desempenho', this)">📊 Desempenho</button>
+  <button class="tab" data-painel="metas" onclick="mostrarPainel('metas', this)">🎯 Metas</button>
+  <button class="tab" data-painel="revisoes" onclick="mostrarPainel('revisoes', this)">🔁 Revisões</button>
+  <button class="tab" data-painel="agenda" onclick="mostrarPainel('agenda', this)">📅 Agenda</button>
+  <button class="tab" data-painel="pomodoro" onclick="mostrarPainel('pomodoro', this)">⏱ Pomodoro</button>
+  <button class="tab" data-painel="dashboard" onclick="mostrarPainel('dashboard', this)">📈 Dashboard</button>
+  <button class="tab" data-painel="configuracoes" onclick="mostrarPainel('configuracoes', this)">⚙ Configurações</button>
+  <div class="question-counter" id="questionCounter" title="Total de questões registradas">
+    <span class="qc-icon">∑</span>
+    <div>
+      <strong id="totalQuestoesCounter">0</strong>
+      <small>questões feitas</small>
+    </div>
+  </div>
+</div>
+
+<div class="detail-panel-overlay" id="detailOverlay" onclick="fecharDetalheMateria()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-panel-header">
+    <div class="detail-panel-top">
+      <div class="detail-panel-name" id="dpName">—</div>
+      <button class="detail-panel-close" onclick="fecharDetalheMateria()">✕</button>
+    </div>
+    <span class="detail-panel-badge" id="dpBadge">—</span>
+  </div>
+  <div class="detail-panel-body" id="dpBody"></div>
+  <div class="dp-actions" id="dpActions"></div>
+</div>
+
+<main>
+
+  <div id="panel-desempenho" class="panel active">
+
+    <div class="stats-bar" id="statsSummary">
+      <div class="stat-box"><div class="stat-box-val" id="statMaterias">0</div><div class="stat-box-lbl">Matérias</div></div>
+      <div class="stat-box"><div class="stat-box-val" id="statAcertos">0</div><div class="stat-box-lbl">Acertos</div></div>
+      <div class="stat-box"><div class="stat-box-val" id="statErros">0</div><div class="stat-box-lbl">Erros</div></div>
+      <div class="stat-box"><div class="stat-box-val" id="statMedia">—</div><div class="stat-box-lbl">Aproveitamento</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon icon-purple">✏️</div>
+        Registrar Questões
+      </div>
+      <div class="input-row">
+        <input type="text" id="materia" placeholder="Nome da matéria" style="flex:2; min-width:150px;" list="materiasList">
+        <datalist id="materiasList"></datalist>
+        <input type="number" id="acertos" placeholder="Acertos" style="width:95px;" min="0">
+        <input type="number" id="erros" placeholder="Erros" style="width:95px;" min="0">
+        <button class="btn btn-primary" onclick="registrarBloco()">➕ Registrar</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;">Atalho: <kbd class="kbd">Enter</kbd> no último campo</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon icon-teal">📈</div>
+        Análise por Matéria
+      </div>
+      <div class="materia-filter-bar">
+        <button class="mfb-btn active" data-filter="todas" onclick="filtrarMaterias('todas', this)">Todas</button>
+        <button class="mfb-btn mfb-red"    data-filter="alta"   onclick="filtrarMaterias('alta', this)">🔴 Alta prioridade</button>
+        <button class="mfb-btn mfb-yellow" data-filter="media"  onclick="filtrarMaterias('media', this)">🟡 Média prioridade</button>
+        <button class="mfb-btn mfb-green"  data-filter="baixa"  onclick="filtrarMaterias('baixa', this)">🟢 Baixa prioridade</button>
+      </div>
+      <div id="tabelaDesempenho">
+        <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Nenhuma matéria registrada ainda.</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon icon-yellow">🔍</div>
+        Diagnóstico Inteligente
+      </div>
+      <div id="diagnostico">
+        <div class="empty"><div class="empty-icon">💡</div><div class="empty-text">Registre questões para ver o diagnóstico.</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon icon-teal">✅</div>
+        Matérias Concluídas
+      </div>
+      <div id="materiasConcluidas">
+        <div class="empty"><div class="empty-icon">🎓</div><div class="empty-text">Nenhuma matéria concluída ainda.</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="panel-metas" class="panel">
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-purple">🎯</div>Metas Semanais</div>
+      <div id="semanaInfoMetas" class="semana-info">📅 Carregando...</div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="gerarMetasAutomaticas()">⚡ Gerar Automáticas</button>
+        <button class="btn btn-secondary" onclick="fecharSemanaAgora()">📌 Fechar Semana</button>
+      </div>
+      <div id="progressoMeta">
+        <div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">Gere metas ou registre questões para começar.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-yellow">📂</div>Histórico de Semanas</div>
+      <div id="historicoMetas">
+        <div class="empty"><div class="empty-icon">📂</div><div class="empty-text">Nenhum histórico ainda. Clique em "Fechar Semana".</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-revisoes" class="panel">
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-pink">🔁</div>Próximas Revisões</div>
+      <div id="gradeRevisoesInteligentes">
+        <div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Nenhuma revisão agendada.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-teal">✅</div>Histórico de Revisões</div>
+      <div class="filter-row">
+        <span class="filter-label">Filtrar:</span>
+        <select id="filtroMateriaHistorico" onchange="atualizarFiltroHistorico()">
+          <option value="todas">Todas as matérias</option>
+        </select>
+      </div>
+      <div id="historicoRevisoesInteligentes">
+        <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Nenhuma revisão concluída ainda.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-agenda" class="panel">
+
+    <div class="agenda-stats-top" id="agendaStatsTop" style="display:none">
+      <div class="ast-item"><span class="ast-val" id="astDias">0</span><span class="ast-lbl">Dias planejados</span></div>
+      <div class="ast-item"><span class="ast-val" id="astEventos">0</span><span class="ast-lbl">Total de eventos</span></div>
+      <div class="ast-item"><span class="ast-val" id="astConcluidos">0</span><span class="ast-lbl">Concluídos</span></div>
+      <div class="ast-item ast-item-prog">
+        <div class="ast-prog-top"><span class="ast-val" id="astPct">0%</span><span class="ast-lbl">Progresso geral</span></div>
+        <div class="ast-mini-bar"><div class="ast-mini-fill" id="astMiniFill"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="agenda-toolbar">
+        <div class="agenda-view-toggle" id="agendaViewToggle">
+          <button class="avt-btn active" id="btnViewLista" onclick="trocarVisualizacaoAgenda('lista')">☰ Lista</button>
+          <button class="avt-btn" id="btnViewSemana" onclick="trocarVisualizacaoAgenda('semana')">📆 Semana</button>
+        </div>
+        <div class="agenda-toolbar-right">
+          <button class="btn btn-primary btn-sm" onclick="criarAgendaInteligente()">🗓 Gerar Agenda</button>
+          <button class="btn btn-secondary btn-sm" onclick="limparAgendaConcluida()">🧹 Limpar Feitos</button>
+            <button class="btn btn-secondary btn-sm" onclick="baixarCronogramaDesktop()">💻 Área de trabalho</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportarCronogramaICS()">📆 Calendário</button>
+        </div>
+      </div>
+
+      <div class="semana-nav" id="semanaNav" style="display:none">
+        <button class="snav-btn" onclick="navegarSemana(-1)">‹ Anterior</button>
+        <span class="snav-label" id="semanaNavLabel">—</span>
+        <button class="snav-btn" onclick="navegarSemana(1)">Próxima ›</button>
+      </div>
+
+      <div id="grade">
+        <div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Gere a agenda para ver os eventos.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-pomodoro" class="panel">
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-pink">⏱</div>Timer Pomodoro</div>
+      <div class="pomo-wrap">
+        <div class="pomo-etapa" id="pomodoroStatus">FOCO</div>
+        <div class="pomo-timer" id="timer">40:00</div>
+        <div class="pomo-ciclos" id="pomoCiclosTexto">Ciclo 1 de 4</div>
+        <div class="pomo-dots" id="pomoDots">
+          <div class="pomo-dot ativo"></div><div class="pomo-dot"></div>
+          <div class="pomo-dot"></div><div class="pomo-dot"></div>
+        </div>
+        <div class="pomo-materia-select">
+          <span>Estudando:</span>
+          <select id="pomoMateriaSelect"><option value="">— Selecionar matéria —</option></select>
+        </div>
+        <div class="pomo-btns">
+          <button class="btn btn-primary" onclick="pomodoroIniciar()">▶ Iniciar</button>
+          <button class="btn btn-secondary" onclick="pomodoroPausar()">⏸ Pausar</button>
+          <button class="btn btn-secondary" onclick="pomodoroPular()">⏭ Pular</button>
+          <button class="btn btn-secondary" onclick="pomodoroReset()">↺ Reset</button>
+        </div>
+      </div>
+      <div class="sub-card">
+        <div class="sub-title">Configurações do Timer</div>
+        <div class="input-row">
+          <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Foco (min)</label><input type="number" id="cfgFoco" value="40" style="width:75px;" min="1" onchange="aplicarConfigPomo()"></div>
+          <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Pausa curta</label><input type="number" id="cfgCurta" value="5" style="width:75px;" min="1" onchange="aplicarConfigPomo()"></div>
+          <div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Pausa longa</label><input type="number" id="cfgLonga" value="15" style="width:75px;" min="1" onchange="aplicarConfigPomo()"></div>
+        </div>
+      </div>
+      <div class="sub-card">
+        <div class="sub-title">Sessões de Hoje</div>
+        <div id="pomoSessoesHoje"><div style="color:var(--muted);font-size:13px;">Nenhuma sessão concluída hoje.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-dashboard" class="panel">
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-purple">📈</div>Dashboard Semanal</div>
+      <div class="charts-grid">
+        <div class="chart-box"><div class="chart-label">📊 Questões Resolvidas esta semana</div><canvas id="graficoProgresso"></canvas></div>
+        <div class="chart-box"><div class="chart-label">🎯 % da Meta Atingida</div><canvas id="graficoDesempenho"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-teal">🏆</div>Aproveitamento por Matéria</div>
+      <div class="chart-box" style="background:transparent;border:none;padding:0;"><canvas id="graficoAproveitamento"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-purple">📊</div>Gráficos Gerais</div>
+      <div class="charts-grid estudamed-extra-charts">
+        <div class="chart-box">
+          <div class="chart-label">🥧 Acertos x Erros</div>
+          <canvas id="graficoPizzaAcertosErros"></canvas>
+          <div class="chart-empty-note" id="graficoPizzaNota"></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-label">📚 Questões por matéria</div>
+          <canvas id="graficoBarrasQuestoesMateria"></canvas>
+          <div class="chart-empty-note" id="graficoBarrasNota"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-configuracoes" class="panel">
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-yellow">⚙️</div>Preferências</div>
+      <div class="config-section">
+        <div class="config-section-title">Aparência</div>
+        <div class="config-row">
+          <div><div class="config-label">Tema escuro</div><div class="config-sublabel">Alterna entre modo claro e escuro</div></div>
+          <label class="toggle"><input type="checkbox" id="cfgTema" onchange="alternarTemaConfig()"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <div class="config-section">
+        <div class="config-section-title">Notificações</div>
+        <div class="config-row">
+          <div><div class="config-label">Sons do Pomodoro</div><div class="config-sublabel">Toca um som ao fim de cada ciclo</div></div>
+          <label class="toggle"><input type="checkbox" id="cfgSom" checked><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <div class="config-section">
+        <div class="config-section-title">Dados</div>
+        <div class="import-export-row">
+          <button class="btn btn-secondary" onclick="exportarDados()">📤 Exportar Backup</button>
+          <label class="btn btn-secondary" style="cursor:pointer;">📥 Importar Backup<input type="file" accept=".json" onchange="importarDados(event)" style="display:none;"></label>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon icon-pink">⚠️</div>Zona de Perigo</div>
+      <div class="danger-zone">
+        <div class="danger-zone-text"><h3>🧹 Resetar Planner</h3><p>Apaga todos os dados permanentemente. Esta ação não pode ser desfeita.</p></div>
+        <button class="btn btn-danger" onclick="resetarSistema()">Resetar Tudo</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+function plannerStorageKey(key) { return key; }
+</script>
+<script>
+let agendaRevisoes = [];
+let materiasConcluidas = {};
+let historicoRevisoesInteligentes = {};
+let materias = {};
+const QUESTOES_POR_REVISAO = 20;
+let historicoExpandido = false;
+let filtroMateriaHistorico = "todas";
+let metasPorMateria = {};
+let historicoMetas = {};
+let progressoSemanal = {};
+let semanaUltimaVista = null;
+let streakDias = 0;
+let ultimoDiaEstudo = null;
+let pomoSessoes = [];
+
+let filtroAtivoPrioridade = 'todas';
+let agendaView          = 'lista'; // 'lista' | 'semana'
+let agendaSemanaOffset  = 0;
+let agendaFiltroMateria = 'todas';
+
+function toast(msg, tipo = 'info') {
+  const icons = { info: 'ℹ️', success: '✅', error: '❌', warning: '⚠️' };
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span>${icons[tipo] || 'ℹ️'}</span><span>${msg}</span>`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3300);
+}
+
+function atualizarStreak() {
+  const hoje = new Date().toDateString();
+  if (!ultimoDiaEstudo) {
+    ultimoDiaEstudo = hoje; streakDias = 1;
+  } else {
+    const ontem = new Date();
+    ontem.setDate(ontem.getDate() - 1);
+    if (ultimoDiaEstudo === hoje) {
+        } else if (ultimoDiaEstudo === ontem.toDateString()) {
+      streakDias++;
+      ultimoDiaEstudo = hoje;
+    } else {
+      streakDias = 1;
+      ultimoDiaEstudo = hoje;
+    }
+  }
+  document.getElementById('streakCount').textContent = streakDias;
+  salvarDados();
+}
+
+function atualizarStatsSummary() {
+  let totalAcertos = 0, totalErros = 0;
+  for (let n in materias) {
+    totalAcertos += materias[n].totalAcertos || 0;
+    totalErros   += materias[n].totalErros   || 0;
+  }
+  const total = totalAcertos + totalErros;
+  const media = total > 0 ? ((totalAcertos / total) * 100).toFixed(1) + '%' : '—';
+  document.getElementById('statMaterias').textContent = Object.keys(materias).length;
+  document.getElementById('statAcertos').textContent  = totalAcertos;
+  document.getElementById('statErros').textContent    = totalErros;
+  document.getElementById('statMedia').textContent    = media;
+  const counter = document.getElementById('totalQuestoesCounter');
+  if (counter) counter.textContent = total;
+}
+
+function atualizarDatalist() {
+  const dl = document.getElementById('materiasList');
+  if (!dl) return;
+  const todos = [...Object.keys(materias), ...Object.keys(materiasConcluidas)];
+  dl.innerHTML = todos.map(n => `<option value="${n}">`).join('');
+}
+
+function calcularPrioridade(percentual) {
+  if (percentual < 60) return "alta";
+  if (percentual < 80) return "media";
+  return "baixa";
+}
+
+function limparCampos() {
+  document.getElementById("materia").value = "";
+  document.getElementById("acertos").value = "";
+  document.getElementById("erros").value   = "";
+}
+
+function obterSemanaAtual() {
+  const hoje = new Date();
+  const inicioAno = new Date(hoje.getFullYear(), 0, 1);
+  const dias = Math.floor((hoje - inicioAno) / (24 * 60 * 60 * 1000));
+  return Math.ceil((hoje.getDay() + 1 + dias) / 7);
+}
+
+function metaAutomatica(nome) {
+  const dados = materias[nome];
+  const totalResolvido = (dados?.totalAcertos || 0) + (dados?.totalErros || 0);
+  if (totalResolvido === 0) return 10;
+  const percentual = (dados.totalAcertos / totalResolvido) * 100;
+  let metaBase;
+  if      (percentual < 60) metaBase = Math.ceil(totalResolvido * 0.5);
+  else if (percentual < 80) metaBase = Math.ceil(totalResolvido * 0.35);
+  else                      metaBase = Math.ceil(totalResolvido * 0.25);
+  return Math.max(metaBase, 10);
+}
+
+function gerarMetasAutomaticas() {
+  for (let nome in materias) {
+    const dados = materias[nome];
+    const total = dados.totalAcertos + dados.totalErros;
+    if (total === 0) continue;
+    metasPorMateria[nome] = metaAutomatica(nome);
+  }
+  atualizarMetasVisuais();
+  salvarDados(); atualizarDashboard();
+  toast('Metas geradas automaticamente!', 'success');
+}
+
+function limparMetasOrfas() {
+  for (let nome in metasPorMateria) {
+    if (!materias[nome]) delete metasPorMateria[nome];
+  }
+}
+
+function registrarProgressoSemanal(nome, quantidade) {
+  const semana = obterSemanaAtual();
+  if (!progressoSemanal[semana])       progressoSemanal[semana] = {};
+  if (!progressoSemanal[semana][nome]) progressoSemanal[semana][nome] = 0;
+  progressoSemanal[semana][nome] += quantidade;
+}
+
+function atualizarInfoSemana() {
+  const el = document.getElementById('semanaInfoMetas');
+  if (!el) return;
+  const semana = obterSemanaAtual();
+  const hoje = new Date();
+  const diasSemana = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  el.innerHTML = `📅 <strong>Semana ${semana}</strong> &nbsp;·&nbsp; Hoje é ${diasSemana[hoje.getDay()]}, ${hoje.toLocaleDateString('pt-BR')}`;
+}
+
+function atualizarMetasVisuais() {
+  const container = document.getElementById("progressoMeta");
+  if (!container) return;
+
+  const semana = obterSemanaAtual();
+  const progressoAtual = progressoSemanal[semana] || {};
+
+  if (Object.keys(metasPorMateria).length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">Nenhuma meta definida.</div></div>';
+    return;
+  }
+
+  const lista = Object.keys(metasPorMateria).map(nome => {
+    const meta  = metasPorMateria[nome];
+    const feito = progressoAtual[nome] || 0;
+    const pct   = meta > 0 ? (feito / meta) * 100 : 0;
+    return { nome, meta, feito, pct };
+  }).sort((a, b) => b.pct - a.pct);
+
+  container.innerHTML = lista.map(item => {
+    let statusClasse, statusTexto, fillClass;
+    if      (item.pct < 50)  { statusClasse = 'meta-atrasado'; statusTexto = '⚠ Abaixo';    fillClass = 'fill-red'; }
+    else if (item.pct < 100) { statusClasse = 'meta-ritmo';    statusTexto = '↗ No ritmo';  fillClass = 'fill-yellow'; }
+    else                     { statusClasse = 'meta-batida';   statusTexto = '✔ Concluída'; fillClass = 'fill-green'; }
+
+    return `
+      <div class="meta-card">
+        <div class="meta-header">
+          <span class="meta-name">${item.nome}</span>
+          <span class="meta-status ${statusClasse}">${statusTexto}</span>
+        </div>
+        <div class="meta-nums">
+          <span>${item.feito} / ${item.meta} questões</span>
+          <span>${item.pct.toFixed(1)}%</span>
+        </div>
+        <div class="meta-track">
+          <div class="meta-fill ${fillClass}" style="width:${Math.min(item.pct, 100)}%"></div>
+        </div>
+        <div class="meta-actions">
+          <button class="btn btn-secondary btn-sm" onclick="editarMeta('${item.nome}')">✏ Editar</button>
+          <button class="btn btn-danger btn-sm"    onclick="excluirMeta('${item.nome}')">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function excluirMeta(nome) {
+  if (!confirm(`Excluir a meta de "${nome}"?`)) return;
+  delete metasPorMateria[nome];
+  salvarDados(); atualizarMetasVisuais(); atualizarDashboard();
+  toast(`Meta de "${nome}" excluída.`, 'info');
+}
+
+function editarMeta(nome) {
+  const nova = prompt(`Nova meta semanal para "${nome}":`, metasPorMateria[nome]);
+  if (!nova) return;
+  const valor = parseInt(nova, 10);
+  if (isNaN(valor) || valor <= 0) { toast('Valor inválido.', 'error'); return; }
+  metasPorMateria[nome] = valor;
+  salvarDados(); atualizarMetasVisuais(); atualizarDashboard();
+  toast(`Meta de "${nome}" → ${valor} questões!`, 'success');
+}
+
+function obterSnapshotSemana(semana) {
+  return {
+    metas:             { ...metasPorMateria },
+    progresso:         { ...(progressoSemanal[semana] || {}) },
+    dataFechamentoISO: new Date().toISOString()
+  };
+}
+
+function salvarHistoricoSemana(semanaParaSalvar) {
+  if (!semanaParaSalvar || historicoMetas[semanaParaSalvar]) return;
+  historicoMetas[semanaParaSalvar] = obterSnapshotSemana(semanaParaSalvar);
+}
+
+function detectarTrocaDeSemanaEFechar() {
+  const semanaAtual = obterSemanaAtual();
+  if (semanaUltimaVista === null) { semanaUltimaVista = semanaAtual; return; }
+  if (semanaAtual !== semanaUltimaVista) {
+    salvarHistoricoSemana(semanaUltimaVista);
+    progressoSemanal[semanaAtual] = progressoSemanal[semanaAtual] || {};
+    semanaUltimaVista = semanaAtual;
+    salvarDados(); atualizarHistorico(); atualizarMetasVisuais(); atualizarDashboard();
+  }
+}
+
+function fecharSemanaAgora() {
+  const semanaAtual = obterSemanaAtual();
+  if (!confirm(`Salvar a Semana ${semanaAtual} no histórico e zerar o progresso?`)) return;
+  historicoMetas[semanaAtual] = obterSnapshotSemana(semanaAtual);
+  progressoSemanal[semanaAtual] = {};
+  salvarDados(); atualizarHistorico(); atualizarMetasVisuais(); atualizarDashboard();
+  toast(`Semana ${semanaAtual} arquivada!`, 'success');
+}
+
+function atualizarHistorico() {
+  const container = document.getElementById("historicoMetas");
+  if (!container) return;
+
+  const semanas = Object.keys(historicoMetas)
+    .map(n => parseInt(n)).filter(n => !isNaN(n)).sort((a, b) => b - a);
+
+  if (!semanas.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📂</div><div class="empty-text">Nenhum histórico ainda.</div></div>';
+    return;
+  }
+
+  container.innerHTML = semanas.map(semana => {
+    const dados = historicoMetas[semana];
+    const metas = dados.metas    || {};
+    const prog  = dados.progresso || {};
+    const data  = dados.dataFechamentoISO
+      ? new Date(dados.dataFechamentoISO).toLocaleDateString("pt-BR") : '';
+
+    const rows = Object.keys(metas).map(nome => {
+      const meta = metas[nome] || 0;
+      const feito = prog[nome] || 0;
+      const pct = meta > 0 ? ((feito / meta) * 100).toFixed(1) : '0.0';
+      const cor = parseFloat(pct) >= 100 ? 'var(--success)' : parseFloat(pct) >= 50 ? 'var(--warning)' : 'var(--danger)';
+      return `<div class="hist-meta-row"><span>${nome}</span><span style="color:${cor};font-weight:600;">${feito}/${meta} (${pct}%)</span></div>`;
+    }).join('');
+
+    return `
+      <div class="hist-meta-card">
+        <div class="hist-meta-header">Semana ${semana}${data ? ` — fechada em ${data}` : ''}</div>
+        ${rows || '<span style="color:var(--muted);font-size:12.5px;">Sem metas.</span>'}
+      </div>
+    `;
+  }).join('');
+}
+
+function registrarBloco() {
+  const nome    = document.getElementById("materia").value.trim();
+  const acertos = parseInt(document.getElementById("acertos").value, 10);
+  const erros   = parseInt(document.getElementById("erros").value, 10);
+
+  if (!nome)                          { toast('Informe o nome da matéria.', 'warning'); return; }
+  if (isNaN(acertos) || isNaN(erros)) { toast('Informe acertos e erros válidos.', 'warning'); return; }
+  if (acertos < 0 || erros < 0)       { toast('Valores não podem ser negativos.', 'warning'); return; }
+
+  if (!materias[nome]) materias[nome] = { totalAcertos: 0, totalErros: 0 };
+  materias[nome].totalAcertos += acertos;
+  materias[nome].totalErros   += erros;
+
+  if (metasPorMateria[nome] === undefined) metasPorMateria[nome] = metaAutomatica(nome);
+
+  gerarEventosMateria(nome);
+  registrarProgressoSemanal(nome, acertos + erros);
+  atualizarStreak();
+  atualizarDatalist();
+  atualizarDesempenho();
+  atualizarMetasVisuais();
+  limparCampos();
+  salvarDados();
+  atualizarDashboard();
+  renderizarGrade();
+  renderizarProximasRevisoes();
+  atualizarStatsSummary();
+  atualizarPomoMaterias();
+
+  toast(`"${nome}" registrado!`, 'success');
+}
+
+function excluirMateria(nome) {
+  if (!confirm(`Deseja excluir completamente "${nome}"?`)) return;
+  delete materias[nome];
+  delete metasPorMateria[nome];
+  agendaRevisoes = agendaRevisoes.filter(ev => ev.materia !== nome);
+  salvarDados();
+  atualizarDesempenho(); atualizarMetasVisuais(); atualizarDashboard();
+  renderizarGrade(); renderizarProximasRevisoes(); atualizarStatsSummary();
+  atualizarDatalist(); atualizarPomoMaterias();
+  toast(`"${nome}" excluída.`, 'info');
+}
+
+function mostrarPainel(nome, tabEl) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('panel-' + nome);
+  if (panel) panel.classList.add('active');
+  if (tabEl && tabEl.classList.contains('tab')) {
+    tabEl.classList.add('active');
+  } else {
+    document.querySelectorAll('.tab').forEach(t => {
+      if (t.dataset.painel === nome) t.classList.add('active');
+    });
+  }
+  if (nome === 'dashboard') atualizarDashboard();
+  if (nome === 'pomodoro') atualizarPomoMaterias();
+}
+
+function filtrarMaterias(filtro, btn) {
+  filtroAtivoPrioridade = filtro;
+  document.querySelectorAll('.mfb-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  atualizarDesempenho();
+}
+
+function makePctRing(pct, size, strokeW, colorClass) {
+  const r = (size - strokeW) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle class="pc-pct-ring-bg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${strokeW}"/>
+    <circle class="pc-pct-ring-fill ${colorClass}" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${strokeW}"
+      stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+  </svg>`;
+}
+
+function atualizarDesempenho() {
+  const container   = document.getElementById("tabelaDesempenho");
+  const diagnostico = document.getElementById("diagnostico");
+  if (!container || !diagnostico) return;
+
+  const nomes = Object.keys(materias);
+
+  if (!nomes.length) {
+    container.innerHTML   = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Nenhuma matéria registrada ainda.</div></div>';
+    diagnostico.innerHTML = '<div class="empty"><div class="empty-icon">💡</div><div class="empty-text">Registre questões para ver o diagnóstico.</div></div>';
+    return;
+  }
+
+  const lista = nomes.map(nome => {
+    const dados = materias[nome];
+    const total = dados.totalAcertos + dados.totalErros;
+    const pct   = total > 0 ? (dados.totalAcertos / total * 100) : 0;
+    return { nome, dados, pct, total, prioridade: calcularPrioridade(pct) };
+  }).sort((a, b) => a.pct - b.pct);
+
+  const counts = { todas: lista.length, alta: 0, media: 0, baixa: 0 };
+  lista.forEach(i => counts[i.prioridade]++);
+  document.querySelectorAll('.mfb-btn').forEach(btn => {
+    const f = btn.dataset.filter;
+    let countEl = btn.querySelector('.mfb-count');
+    if (!countEl) { countEl = document.createElement('span'); countEl.className = 'mfb-count'; btn.appendChild(countEl); }
+    countEl.textContent = counts[f] ?? '';
+  });
+
+  const listaFiltrada = filtroAtivoPrioridade === 'todas'
+    ? lista
+    : lista.filter(i => i.prioridade === filtroAtivoPrioridade);
+
+  if (!listaFiltrada.length) {
+    const labels = { alta: 'alta prioridade', media: 'média prioridade', baixa: 'baixa prioridade' };
+    container.innerHTML = `<div class="materias-empty-filter">🔍 Nenhuma matéria com ${labels[filtroAtivoPrioridade] || 'esse filtro'}.</div>`;
+  } else {
+    container.innerHTML = '<div class="materias-grid">' + listaFiltrada.map(({ nome, dados, pct, total, prioridade }) => {
+    let colorClass, ringClass, statusClass, statusTxt, pcClass;
+    if (pct < 60) {
+      colorClass = 'fill-red'; ringClass = 'ring-red'; statusClass = 'pc-status-red';
+      statusTxt = '⚠ Precisa reforçar'; pcClass = 'pc-red';
+    } else if (pct < 80) {
+      colorClass = 'fill-yellow'; ringClass = 'ring-yellow'; statusClass = 'pc-status-yellow';
+      statusTxt = '↗ Desempenho moderado'; pcClass = 'pc-yellow';
+    } else {
+      colorClass = 'fill-green'; ringClass = 'ring-green'; statusClass = 'pc-status-green';
+      statusTxt = '✔ Excelente domínio'; pcClass = 'pc-green';
+    }
+    const ring = makePctRing(pct, 48, 4, ringClass);
+    return `
+      <div class="performance-card ${pcClass}" onclick="verDetalheMateria('${nome}')">
+        <div class="performance-header">
+          <span class="performance-name">${nome}</span>
+          <div class="pc-pct-ring">
+            ${ring}
+            <div class="pc-pct-label">${Math.round(pct)}%</div>
+          </div>
+        </div>
+        <div class="pc-numbers">
+          <div class="pc-num pcn-green"><strong>${dados.totalAcertos}</strong><span>Acertos</span></div>
+          <div class="pc-num pcn-red"><strong>${dados.totalErros}</strong><span>Erros</span></div>
+          <div class="pc-num pcn-acc"><strong>${total}</strong><span>Total</span></div>
+        </div>
+        <div class="pc-bar-wrap">
+          <div class="progress-track"><div class="progress-fill ${colorClass}" style="width:${pct}%"></div></div>
+        </div>
+        <div class="pc-footer ${statusClass}">
+          <div class="pc-status-dot"></div>
+          <span class="pc-status-label">${statusTxt}</span>
+          <span class="pc-detail-btn">Ver detalhes →</span>
+        </div>
+      </div>
+    `;
+    }).join('') + '</div>';
+  }
+
+  gerarDiagnostico(lista);
+  atualizarStatsSummary();
+}
+
+function gerarDiagnostico(lista) {
+  const container = document.getElementById("diagnostico");
+  if (!container || !lista.length) return;
+
+  const configs = {
+    alta:  { classe: 'diag-alta',  icone: '🔴', desc: 'Crítico — revisar teoria imediatamente' },
+    media: { classe: 'diag-media', icone: '🟡', desc: 'Moderado — aumentar volume de questões' },
+    baixa: { classe: 'diag-baixa', icone: '🟢', desc: 'Bom — manter revisões periódicas' }
+  };
+
+  container.innerHTML = '<div class="diag-list">' +
+    [...lista].sort((a, b) => a.pct - b.pct).map(({ nome, pct, prioridade }) => {
+      const c = configs[prioridade];
+      return `
+        <div class="diag-row ${c.classe}" onclick="verDetalheMateria('${nome}')">
+          <span class="diag-row-icon">${c.icone}</span>
+          <div class="diag-row-body">
+            <div class="diag-row-name">${nome}</div>
+            <div class="diag-row-desc">${c.desc}</div>
+          </div>
+          <div class="diag-row-pct">${pct.toFixed(1)}%</div>
+        </div>
+      `;
+    }).join('') + '</div>';
+}
+
+function fecharDetalheMateria() {
+  document.getElementById('detailPanel')?.classList.remove('open');
+  document.getElementById('detailOverlay')?.classList.remove('open');
+  document.body.style.overflow = '';
+  document.querySelectorAll('.performance-card').forEach(c => c.classList.remove('selected'));
+}
+
+function verDetalheMateria(nome) {
+  const dados = materias[nome];
+  if (!dados) return;
+
+  const total = dados.totalAcertos + dados.totalErros;
+  const pct = total > 0 ? (dados.totalAcertos / total * 100) : 0;
+  const prioridade = calcularPrioridade(pct);
+  const metaAtual = metasPorMateria[nome];
+  const semana = obterSemanaAtual();
+  const progressoAtual = (progressoSemanal[semana] || {})[nome] || 0;
+  const metaPct = metaAtual > 0 ? Math.min((progressoAtual / metaAtual) * 100, 100) : 0;
+
+  let ringClass, fillClass, dpClass, prioLabel;
+  if (pct < 60)      { ringClass = 'ring-red';    fillClass = 'fill-red';    dpClass = 'dp-red';    prioLabel = '🔴 Prioridade Alta'; }
+  else if (pct < 80) { ringClass = 'ring-yellow'; fillClass = 'fill-yellow'; dpClass = 'dp-yellow'; prioLabel = '🟡 Prioridade Média'; }
+  else               { ringClass = 'ring-green';  fillClass = 'fill-green';  dpClass = 'dp-green';  prioLabel = '🟢 Bom Desempenho'; }
+
+  const r = 44, sw = 7, circ = 2 * Math.PI * r;
+  const ringHtml = `<svg width="100" height="100" viewBox="0 0 100 100">
+    <circle class="pc-pct-ring-bg" cx="50" cy="50" r="${r}" stroke-width="${sw}"/>
+    <circle class="pc-pct-ring-fill ${ringClass}" cx="50" cy="50" r="${r}" stroke-width="${sw}"
+      stroke-dasharray="${circ}" stroke-dashoffset="${circ - (pct/100)*circ}"/>
+  </svg>`;
+
+  const revisoesArr = agendaRevisoes
+    .filter(ev => ev.materia === nome && ev.tipo === 'Revisão' && !ev.concluido)
+    .sort((a, b) => new Date(a.data) - new Date(b.data))
+    .slice(0, 4);
+  const proximas = revisoesArr;
+  const revisoesHtml = proximas.length
+    ? proximas.map(rv => `<div class="dp-rev-chip">📅 ${new Date(rv.data).toLocaleDateString('pt-BR')}</div>`).join('')
+    : '<span style="font-size:12.5px;color:var(--muted);">Nenhuma revisão agendada</span>';
+
+  const metaFillClass = metaPct >= 100 ? 'fill-green' : metaPct >= 50 ? 'fill-yellow' : 'fill-red';
+
+  document.getElementById('dpName').textContent = nome;
+  const badge = document.getElementById('dpBadge');
+  badge.textContent = prioLabel;
+  badge.className = `detail-panel-badge ${dpClass}`;
+
+  const insights = {
+    red:    { cls: 'dp-insight-red',    icon: '🔴', text: `<strong>${nome}</strong> está em zona crítica. Recomenda-se revisar a teoria base e resolver no mínimo <strong>20 questões diárias</strong>, focando nos erros mais frequentes.` },
+    yellow: { cls: 'dp-insight-yellow', icon: '🟡', text: `<strong>${nome}</strong> tem desempenho moderado. Aumente o volume de questões e dedique tempo extra aos <strong>pontos de maior dificuldade</strong>.` },
+    green:  { cls: 'dp-insight-green',  icon: '🟢', text: `<strong>${nome}</strong> está com bom desempenho! Mantenha revisões periódicas e faça <strong>simulados completos</strong> para consolidar o domínio.` },
+  };
+  const insightKey = pct < 60 ? 'red' : pct < 80 ? 'yellow' : 'green';
+  const ins = insights[insightKey];
+
+  document.getElementById('dpBody').innerHTML = `
+    <div class="dp-big-ring">
+      <div class="dp-ring-wrap">
+        ${ringHtml}
+        <div class="dp-ring-center">
+          <div class="dp-ring-pct" style="color:${pct<60?'var(--danger)':pct<80?'var(--warning)':'var(--success)'}">${pct.toFixed(1)}%</div>
+          <div class="dp-ring-lbl">Aproveit.</div>
+        </div>
+      </div>
+      <div class="dp-ring-stats">
+        <div class="dp-ring-stat">
+          <div class="dp-ring-stat-dot" style="background:var(--success)"></div>
+          <div class="dp-ring-stat-val" style="color:var(--success)">${dados.totalAcertos}</div>
+          <div class="dp-ring-stat-lbl">Acertos</div>
+        </div>
+        <div class="dp-ring-stat">
+          <div class="dp-ring-stat-dot" style="background:var(--danger)"></div>
+          <div class="dp-ring-stat-val" style="color:var(--danger)">${dados.totalErros}</div>
+          <div class="dp-ring-stat-lbl">Erros</div>
+        </div>
+        <div class="dp-ring-stat">
+          <div class="dp-ring-stat-dot" style="background:var(--muted)"></div>
+          <div class="dp-ring-stat-val" style="color:var(--text-dim)">${total}</div>
+          <div class="dp-ring-stat-lbl">Total</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-title">Análise</div>
+      <div class="dp-insight ${ins.cls}">${ins.icon} ${ins.text}</div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-title">Aproveitamento</div>
+      <div class="dp-bar-wrap">
+        <div class="dp-bar-label">
+          <span>${dados.totalAcertos} acertos de ${total} questões</span>
+          <span style="font-weight:700;color:${pct<60?'var(--danger)':pct<80?'var(--warning)':'var(--success)'}">${pct.toFixed(1)}%</span>
+        </div>
+        <div class="dp-bar-track"><div class="dp-bar-fill ${fillClass}" style="width:${pct}%"></div></div>
+        <div class="dp-bar-sub">${pct < 60 ? '⚠ Abaixo do mínimo recomendado (60%)' : pct < 80 ? '↗ Dentro da faixa de melhoria (60–80%)' : '✔ Acima da meta ideal (80%+)'}</div>
+      </div>
+    </div>
+
+    ${metaAtual ? `
+    <div class="dp-section">
+      <div class="dp-section-title">Meta Semanal</div>
+      <div class="dp-bar-wrap">
+        <div class="dp-bar-label">
+          <span>${progressoAtual} de ${metaAtual} questões esta semana</span>
+          <span style="font-weight:700">${metaPct.toFixed(0)}%</span>
+        </div>
+        <div class="dp-bar-track"><div class="dp-bar-fill ${metaFillClass}" style="width:${metaPct}%"></div></div>
+        <div class="dp-bar-sub">${metaPct >= 100 ? '✔ Meta da semana atingida!' : `Faltam ${metaAtual - progressoAtual} questões para bater a meta`}</div>
+      </div>
+    </div>` : ''}
+
+    <div class="dp-section">
+      <div class="dp-section-title">Próximas Revisões</div>
+      <div class="dp-rev-chips">${revisoesHtml}</div>
+    </div>
+  `;
+
+  document.getElementById('dpActions').innerHTML = `
+    <button class="btn btn-success" style="flex:1" onclick="concluirMateria('${nome}'); fecharDetalheMateria()">✔ Concluir</button>
+    <button class="btn btn-danger"  style="flex:1" onclick="excluirMateria('${nome}'); fecharDetalheMateria()">🗑 Excluir</button>
+  `;
+
+  document.querySelectorAll('.performance-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.performance-card').forEach(c => {
+    if (c.querySelector('.performance-name')?.textContent === nome) c.classList.add('selected');
+  });
+
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function concluirMateria(nome) {
+  if (!materias[nome]) return;
+  if (!confirm(`Marcar "${nome}" como concluída?`)) return;
+  materiasConcluidas[nome] = { dados: materias[nome], dataConclusao: new Date().toISOString() };
+  delete materias[nome];
+  delete metasPorMateria[nome];
+  agendaRevisoes = agendaRevisoes.filter(ev => ev.materia !== nome);
+  salvarDados();
+  atualizarDesempenho(); atualizarMetasVisuais(); atualizarDashboard();
+  renderizarGrade(); renderizarProximasRevisoes(); renderizarMateriasConcluidas();
+  atualizarDatalist(); atualizarPomoMaterias();
+  toast(`"${nome}" concluída! 🎓`, 'success');
+}
+
+function renderizarMateriasConcluidas() {
+  const container = document.getElementById("materiasConcluidas");
+  if (!container) return;
+  const nomes = Object.keys(materiasConcluidas);
+  if (!nomes.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🎓</div><div class="empty-text">Nenhuma matéria concluída ainda.</div></div>';
+    return;
+  }
+  container.innerHTML = nomes.map(nome => {
+    const item = materiasConcluidas[nome];
+    const data = new Date(item.dataConclusao).toLocaleDateString("pt-BR");
+    const dados = item.dados;
+    const total = dados.totalAcertos + dados.totalErros;
+    const pct   = total > 0 ? ((dados.totalAcertos / total) * 100).toFixed(1) : '—';
+    return `
+      <div class="concluida-card">
+        <div>
+          <div class="concluida-nome">✅ ${nome}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">${total} questões · ${pct}% aproveitamento</div>
+        </div>
+        <span class="concluida-data">Concluída em ${data}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+const MAX_MATERIAS_POR_DIA = 4;
+
+function calcularIntervaloRevisao(prioridade, ordem) {
+ const base = prioridade === 'alta' ? 4 : prioridade === 'media' ? 12 : 28;
+  return Math.round(base * (ordem === 1 ? 1 : 2.5));
+}
+
+function eventosAtivosDeMateria(nome) {
+  return agendaRevisoes.filter(ev => ev.materia === nome && !ev.concluido);
+}
+
+function contarMateriasNoDia(dataStr) {
+  return [...new Set(
+    agendaRevisoes
+      .filter(ev => !ev.concluido && new Date(ev.data).toISOString().split('T')[0] === dataStr)
+      .map(ev => ev.materia)
+  )].length;
+}
+
+function proximoDiaDisponivel(dataBase, nome) {
+  let d = new Date(dataBase);
+  for (let i = 0; i < 60; i++) {
+    const key = d.toISOString().split('T')[0];
+    const jaTemMateria = agendaRevisoes.some(ev =>
+      new Date(ev.data).toISOString().split('T')[0] === key && ev.materia === nome
+    );
+    if (!jaTemMateria && contarMateriasNoDia(key) < MAX_MATERIAS_POR_DIA) return new Date(d);
+    d.setDate(d.getDate() + 1);
+  }
+  return new Date(dataBase); 
+}
+
+function gerarEventosMateria(nome) {
+  const dados = materias[nome];
+  if (!dados) return false;
+  const total = dados.totalAcertos + dados.totalErros;
+  if (total === 0) return false;
+  if (eventosAtivosDeMateria(nome).length > 0) return false;
+
+  const pct        = (dados.totalAcertos / total) * 100;
+  const prioridade = calcularPrioridade(pct);
+  const hoje       = new Date(); hoje.setHours(12, 0, 0, 0);
+  const durEstudo  = prioridade === 'alta' ? 60 : 40;
+
+  const diaEstudo = proximoDiaDisponivel(hoje, nome);
+  agendaRevisoes.push({
+    id: crypto.randomUUID(),
+    data: diaEstudo.toISOString(),
+    tipo: 'Estudo',
+    materia: nome,
+    duracao: durEstudo,
+    prioridade,
+    concluido: false,
+    reagendamentos: 0
+  });
+
+  const baseRev = new Date(diaEstudo);
+  for (let ordem = 1; ordem <= 2; ordem++) {
+    const offset = calcularIntervaloRevisao(prioridade, ordem);
+    const alvo   = new Date(baseRev);
+    alvo.setDate(baseRev.getDate() + offset);
+    const dia = proximoDiaDisponivel(alvo, nome);
+    agendaRevisoes.push({
+      id: crypto.randomUUID(),
+      data: dia.toISOString(),
+      tipo: 'Revisão',
+      materia: nome,
+      duracao: 30,
+      prioridade,
+      concluido: false,
+      reagendamentos: 0
+    });
+  }
+
+  return true;
+}
+
+function gerarEventosTodasMaterias() {
+  let criou = false;
+  for (const nome in materias) {
+    if (gerarEventosMateria(nome)) criou = true;
+  }
+  return criou;
+}
+
+function criarAgendaInteligente() {
+  migrarAgendaRevisoes();
+  const criou      = gerarEventosTodasMaterias();
+  const ativos     = agendaRevisoes.filter(ev => !ev.concluido);
+  const totalDias  = new Set(ativos.map(ev => new Date(ev.data).toISOString().split('T')[0])).size;
+  salvarDados(); renderizarGrade(); renderizarProximasRevisoes(); atualizarFiltroMateriaAgenda();
+  if (Object.keys(materias).length === 0) {
+    toast('Registre matérias antes de gerar a agenda.', 'warning');
+  } else if (!criou) {
+    toast(`Agenda já atualizada — ${ativos.length} evento(s) ativo(s). Conclua os atuais para gerar o próximo ciclo.`, 'info');
+  } else {
+    toast(`Agenda gerada! ${ativos.length} evento(s) em ${totalDias} dia(s) — 1 estudo + 2 revisões por matéria ✅`, 'success');
+  }
+}
+
+function limparAgendaConcluida() {
+  const antes = agendaRevisoes.length;
+  agendaRevisoes = agendaRevisoes.filter(ev => !ev.concluido);
+  const removidos = antes - agendaRevisoes.length;
+  salvarDados(); renderizarGrade();
+  toast(`${removidos} evento(s) concluído(s) removido(s).`, 'info');
+}
+
+function renderizarProximasRevisoes() {
+  const container = document.getElementById('gradeRevisoesInteligentes');
+  if (!container) return;
+
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const lista = agendaRevisoes
+    .filter(ev => ev.tipo === 'Revisão')
+    .map(ev => {
+      const d = new Date(ev.data); d.setHours(0, 0, 0, 0);
+      const status = ev.concluido ? 'concluida'
+                   : d < hoje    ? 'atrasada'
+                   : d.getTime() === hoje.getTime() ? 'hoje' : 'futura';
+      return { ev, d, status };
+    })
+    .sort((a, b) => a.d - b.d);
+
+  if (!lista.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Nenhuma revisão agendada. Gere a agenda primeiro.</div></div>';
+    return;
+  }
+
+  const tagLabels = { atrasada: 'Atrasada', hoje: 'Hoje', futura: 'Agendada', concluida: 'Concluída' };
+
+  container.innerHTML = lista.map(({ ev, d, status }) => `
+    <div class="rev-card rev-${status} ${ev.concluido ? 'rev-feita' : ''}">
+      <div class="rev-info">
+        <div class="rev-name">${ev.materia}</div>
+        <div class="rev-date">📅 ${d.toLocaleDateString('pt-BR')}</div>
+      </div>
+      <span class="rev-tag tag-${status}">${tagLabels[status]}</span>
+      <div class="rev-btns">
+        ${!ev.concluido
+          ? `<button class="btn btn-success btn-sm" onclick="marcarRevisaoInteligente('${ev.id}')">✔ Concluir</button>`
+          : `<button class="btn btn-secondary btn-sm" onclick="desconcluirRevisaoAgenda('${ev.id}')">↩ Desfazer</button>`
+        }
+        <button class="btn btn-secondary btn-sm" onclick="recalcularRevisoes('${ev.materia}')" title="Recalcular">🔁</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function marcarRevisaoInteligente(id) {
+  const ev = agendaRevisoes.find(e => e.id === id);
+  if (!ev || ev.tipo !== 'Revisão') return;
+
+  ev.concluido = true;
+
+  if (!historicoRevisoesInteligentes[ev.materia]) historicoRevisoesInteligentes[ev.materia] = [];
+  historicoRevisoesInteligentes[ev.materia].push({
+    dataOriginal:  ev.data,
+    dataConclusao: new Date().toISOString()
+  });
+
+  const ativos = eventosAtivosDeMateria(ev.materia);
+  if (ativos.length === 0) {
+    gerarEventosMateria(ev.materia);
+    toast(`Ciclo de "${ev.materia}" concluído! Próximo ciclo gerado 🎯`, 'success');
+  } else {
+    toast('Revisão concluída! ✅', 'success');
+  }
+
+  salvarDados();
+  renderizarProximasRevisoes();
+  renderizarHistoricoRevisoesInteligentes();
+  renderizarGrade();
+}
+
+function desconcluirRevisaoAgenda(id) {
+  const ev = agendaRevisoes.find(e => e.id === id);
+  if (!ev) return;
+  ev.concluido = false;
+
+  const hist = historicoRevisoesInteligentes[ev.materia];
+  if (hist) {
+    const idx = hist.findIndex(h => h.dataOriginal === ev.data);
+    if (idx >= 0) hist.splice(idx, 1);
+    if (hist.length === 0) delete historicoRevisoesInteligentes[ev.materia];
+  }
+
+  salvarDados();
+  renderizarProximasRevisoes();
+  renderizarHistoricoRevisoesInteligentes();
+  renderizarGrade();
+  toast('Revisão restaurada.', 'info');
+}
+
+function recalcularRevisoes(nome) {
+  if (!materias[nome]) return;
+  if (!confirm(`Recalcular revisões de "${nome}"? Os eventos ativos serão removidos.`)) return;
+  agendaRevisoes = agendaRevisoes.filter(ev => !(ev.materia === nome && !ev.concluido));
+  gerarEventosMateria(nome);
+  salvarDados(); renderizarProximasRevisoes(); renderizarGrade();
+  toast('Revisões recalculadas!', 'success');
+}
+
+function renderizarHistoricoRevisoesInteligentes() {
+  const container = document.getElementById('historicoRevisoesInteligentes');
+  if (!container) return;
+
+  let lista = [];
+  for (const nome in historicoRevisoesInteligentes) {
+    historicoRevisoesInteligentes[nome].forEach((item, index) => {
+      lista.push({
+        materia:       nome,
+        indexOriginal: index,
+        dataOriginal:  new Date(item.dataOriginal),
+        dataConclusao: new Date(item.dataConclusao)
+      });
+    });
+  }
+
+  if (filtroMateriaHistorico !== 'todas') {
+    lista = lista.filter(i => i.materia === filtroMateriaHistorico);
+  }
+  lista.sort((a, b) => b.dataConclusao - a.dataConclusao);
+
+  if (!lista.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Nenhuma revisão concluída ainda.</div></div>';
+    atualizarOpcoesFiltroHistorico(); return;
+  }
+
+  const limite = historicoExpandido ? lista.length : 5;
+  container.innerHTML = `<div style="margin-bottom:9px;color:var(--muted);font-size:12.5px;">Mostrando ${Math.min(limite, lista.length)} de ${lista.length}</div>`;
+
+  container.innerHTML += lista.slice(0, limite).map(item => `
+    <div class="hist-card">
+      <div class="hist-name">${item.materia}</div>
+      <div class="hist-dates">
+        📅 Prevista: ${item.dataOriginal.toLocaleDateString('pt-BR')}<br>
+        ✅ Concluída: ${item.dataConclusao.toLocaleDateString('pt-BR')}
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:9px;" onclick="desconcluirRevisaoHistorico('${item.materia}', ${item.indexOriginal})">↩ Desfazer</button>
+    </div>
+  `).join('');
+
+  if (lista.length > 5) {
+    container.innerHTML += `
+      <div style="text-align:center;margin-top:10px;">
+        <button class="btn btn-secondary" onclick="toggleHistorico()">
+          ${historicoExpandido ? '▲ Ver menos' : '▼ Ver mais'}
+        </button>
+      </div>`;
+  }
+
+  atualizarOpcoesFiltroHistorico();
+}
+
+function desconcluirRevisaoHistorico(nome, index) {
+  const item = historicoRevisoesInteligentes[nome]?.[index];
+  if (!item) return;
+
+  const existeNaAgenda = agendaRevisoes.find(ev =>
+    ev.materia === nome && ev.tipo === 'Revisão' && ev.data === item.dataOriginal
+  );
+  if (existeNaAgenda) {
+    existeNaAgenda.concluido = false;
+  } else {
+    const pct        = (() => { const d = materias[nome]; if (!d) return 50; const t = d.totalAcertos + d.totalErros; return t > 0 ? (d.totalAcertos/t)*100 : 50; })();
+    const prioridade = calcularPrioridade(pct);
+    agendaRevisoes.push({ id: crypto.randomUUID(), data: item.dataOriginal, tipo: 'Revisão', materia: nome, duracao: 30, prioridade, concluido: false, reagendamentos: 0 });
+  }
+
+  historicoRevisoesInteligentes[nome].splice(index, 1);
+  if (historicoRevisoesInteligentes[nome].length === 0) delete historicoRevisoesInteligentes[nome];
+
+  salvarDados(); renderizarProximasRevisoes(); renderizarHistoricoRevisoesInteligentes(); renderizarGrade();
+  toast('Revisão restaurada.', 'info');
+}
+
+function atualizarOpcoesFiltroHistorico() {
+  const select = document.getElementById('filtroMateriaHistorico');
+  if (!select) return;
+  const nomes = Object.keys(historicoRevisoesInteligentes);
+  select.innerHTML = `<option value="todas">Todas as matérias</option>`;
+  nomes.forEach(nome => { select.innerHTML += `<option value="${nome}">${nome}</option>`; });
+  select.value = filtroMateriaHistorico;
+}
+
+function atualizarFiltroHistorico() {
+  filtroMateriaHistorico = document.getElementById('filtroMateriaHistorico').value;
+  historicoExpandido = false;
+  renderizarHistoricoRevisoesInteligentes();
+}
+
+function toggleHistorico() {
+  historicoExpandido = !historicoExpandido;
+  renderizarHistoricoRevisoesInteligentes();
+}
+
+function _agendaGroupByDay(lista) {
+  const map = {};
+  (lista || agendaRevisoes).forEach(ev => {
+    const key = new Date(ev.data).toISOString().split('T')[0];
+    if (!map[key]) map[key] = { carga: 0, eventos: [], materias: new Set() };
+    map[key].eventos.push(ev);
+    map[key].carga += ev.duracao;
+    map[key].materias.add(ev.materia);
+  });
+  return map;
+}
+
+function _atualizarStatsAgenda() {
+  const statsEl = document.getElementById('agendaStatsTop');
+  if (!statsEl) return;
+  if (!agendaRevisoes.length) { statsEl.style.display = 'none'; return; }
+  const total   = agendaRevisoes.length;
+  const concl   = agendaRevisoes.filter(e => e.concluido).length;
+  const dias    = new Set(agendaRevisoes.map(ev => new Date(ev.data).toISOString().split('T')[0])).size;
+  const pct     = total > 0 ? Math.round((concl / total) * 100) : 0;
+  const cor     = pct >= 70 ? 'var(--success)' : pct >= 40 ? 'var(--warning)' : 'var(--accent)';
+  statsEl.style.display = 'grid';
+  statsEl.querySelector('#astDias').textContent       = dias;
+  statsEl.querySelector('#astEventos').textContent    = total;
+  statsEl.querySelector('#astConcluidos').textContent = concl;
+  const pctEl  = statsEl.querySelector('#astPct');
+  const fillEl = statsEl.querySelector('#astMiniFill');
+  if (pctEl)  { pctEl.textContent = pct + '%'; pctEl.style.color = cor; }
+  if (fillEl) { fillEl.style.width = pct + '%'; fillEl.style.background = cor; }
+}
+
+function calcularCargaSemanal() {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const dom  = new Date(hoje); dom.setDate(hoje.getDate() - hoje.getDay());
+  const sab  = new Date(dom);  sab.setDate(dom.getDate() + 6); sab.setHours(23,59,59,999);
+  return agendaRevisoes.filter(ev => { const d = new Date(ev.data); return d >= dom && d <= sab; }).reduce((s, ev) => s + ev.duracao, 0);
+}
+
+function atualizarFiltroMateriaAgenda() {
+  const sel = document.getElementById('agendaFiltroMateriaSelect');
+  if (!sel) return;
+  const nomes = [...new Set(agendaRevisoes.map(ev => ev.materia))].sort();
+  const atual = sel.value;
+  sel.innerHTML = '<option value="todas">Todas as matérias</option>';
+  nomes.forEach(n => { sel.innerHTML += `<option value="${n}">${n}</option>`; });
+  sel.value = nomes.includes(atual) ? atual : 'todas';
+}
+
+function onFiltroMateriaAgendaChange() {
+  agendaFiltroMateria = document.getElementById('agendaFiltroMateriaSelect').value;
+  renderizarGrade();
+}
+
+function reagendarEvento(id, dias) {
+  const ev = agendaRevisoes.find(e => e.id === id);
+  if (!ev) return;
+  const d = new Date(ev.data); d.setDate(d.getDate() + dias);
+  ev.data = d.toISOString();
+  ev.reagendamentos = (ev.reagendamentos || 0) + 1;
+  salvarDados(); renderizarGrade();
+  toast(`Evento reagendado para ${d.toLocaleDateString('pt-BR')} 📅`, 'info');
+}
+
+function excluirEvento(id) {
+  const ev = agendaRevisoes.find(e => e.id === id);
+  if (!ev) return;
+  if (!confirm(`Excluir evento de "${ev.materia}" (${ev.tipo})?`)) return;
+  agendaRevisoes = agendaRevisoes.filter(e => e.id !== id);
+  salvarDados(); renderizarGrade(); renderizarProximasRevisoes();
+  toast('Evento excluído.', 'info');
+}
+
+function reagendarAtrasados() {
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const hojeStr = hoje.toISOString().split('T')[0];
+  const atrasados = agendaRevisoes.filter(ev => !ev.concluido && new Date(ev.data).toISOString().split('T')[0] < hojeStr);
+  if (!atrasados.length) { toast('Nenhum evento atrasado!', 'info'); return; }
+  if (!confirm(`Mover ${atrasados.length} evento(s) atrasado(s) para hoje?`)) return;
+  atrasados.forEach(ev => { ev.data = hoje.toISOString(); ev.reagendamentos = (ev.reagendamentos || 0) + 1; });
+  salvarDados(); renderizarGrade();
+  toast(`${atrasados.length} evento(s) movido(s) para hoje ✅`, 'success');
+}
+
+function marcarDiaInteiro(dataStr) {
+  const eventos = agendaRevisoes.filter(ev => new Date(ev.data).toISOString().split('T')[0] === dataStr);
+  if (!eventos.length) return;
+  const todosConcluidos = eventos.every(e => e.concluido);
+  eventos.forEach(e => { e.concluido = !todosConcluidos; });
+  const materiasDia = [...new Set(eventos.map(e => e.materia))];
+  if (!todosConcluidos) {
+    materiasDia.forEach(nome => {
+      if (eventosAtivosDeMateria(nome).length === 0) gerarEventosMateria(nome);
+    });
+  }
+  salvarDados(); renderizarGrade(); renderizarProximasRevisoes();
+  toast(todosConcluidos ? 'Dia desmarcado.' : 'Dia inteiro concluído! 🎉', todosConcluidos ? 'info' : 'success');
+}
+
+function abrirModalEventoManual(dataPreenchida) {
+  document.getElementById('modalEventoManual')?.remove();
+  const nomes = Object.keys(materias);
+  if (!nomes.length) { toast('Registre ao menos uma matéria primeiro.', 'warning'); return; }
+  const hojeStr = new Date().toISOString().split('T')[0];
+  const dataVal = dataPreenchida || hojeStr;
+  const modal   = document.createElement('div');
+  modal.id        = 'modalEventoManual';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">➕ Adicionar Evento</span>
+        <button class="modal-close" onclick="fecharModalEventoManual()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label>Matéria</label>
+          <select id="mevMateria">${nomes.map(n => `<option value="${n}">${n}</option>`).join('')}</select>
+        </div>
+        <div class="modal-field">
+          <label>Tipo</label>
+          <div class="modal-radio-group">
+            <label class="modal-radio"><input type="radio" name="mevTipo" value="Estudo" checked> 📖 Estudo</label>
+            <label class="modal-radio"><input type="radio" name="mevTipo" value="Revisão"> 🔁 Revisão</label>
+          </div>
+        </div>
+        <div class="modal-field">
+          <label>Data</label>
+          <input type="date" id="mevData" value="${dataVal}" min="${hojeStr}">
+        </div>
+        <div class="modal-field">
+          <label>Duração (min)</label>
+          <input type="number" id="mevDuracao" value="40" min="5" max="300" step="5">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="fecharModalEventoManual()">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmarEventoManual()">✔ Adicionar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  requestAnimationFrame(() => modal.classList.add('modal-open'));
+}
+
+function fecharModalEventoManual() {
+  const m = document.getElementById('modalEventoManual');
+  if (!m) return;
+  m.classList.remove('modal-open');
+  setTimeout(() => m.remove(), 220);
+}
+
+function confirmarEventoManual() {
+  const nome    = document.getElementById('mevMateria').value;
+  const tipo    = document.querySelector('input[name="mevTipo"]:checked').value;
+  const data    = document.getElementById('mevData').value;
+  const duracao = parseInt(document.getElementById('mevDuracao').value) || 40;
+  if (!data) { toast('Escolha uma data.', 'warning'); return; }
+  const dataStr    = new Date(data + 'T12:00:00').toISOString().split('T')[0];
+  const qtdMatDia  = contarMateriasNoDia(dataStr);
+  const jaTemEsta  = agendaRevisoes.some(ev => new Date(ev.data).toISOString().split('T')[0] === dataStr && ev.materia === nome);
+  if (!jaTemEsta && qtdMatDia >= MAX_MATERIAS_POR_DIA) {
+    if (!confirm(`Este dia já tem ${MAX_MATERIAS_POR_DIA} matérias (limite). Adicionar mesmo assim?`)) return;
+  }
+  const pct        = (() => { const d = materias[nome]; if (!d) return 50; const t = d.totalAcertos + d.totalErros; return t > 0 ? (d.totalAcertos/t)*100 : 50; })();
+  const prioridade = calcularPrioridade(pct);
+  agendaRevisoes.push({ id: crypto.randomUUID(), data: new Date(data + 'T12:00:00').toISOString(), tipo, materia: nome, duracao, prioridade, concluido: false, reagendamentos: 0 });
+  salvarDados(); renderizarGrade(); renderizarProximasRevisoes(); fecharModalEventoManual();
+  toast(`${tipo} de "${nome}" adicionado! ✅`, 'success');
+}
+
+function toggleEvMenu(id) {
+  const menu = document.getElementById('evMenu_' + id);
+  if (!menu) return;
+  const aberto = menu.classList.contains('open');
+  closeEvMenus();
+  if (!aberto) menu.classList.add('open');
+}
+
+function closeEvMenus() {
+  document.querySelectorAll('.ev-dropdown.open').forEach(m => m.classList.remove('open'));
+}
+
+document.addEventListener('click', e => { if (!e.target.closest('.ev-menu-wrap')) closeEvMenus(); });
+
+function _eventoCard(ev) {
+  const isEstudo  = ev.tipo === 'Estudo';
+  const prioIcon  = ev.prioridade === 'alta' ? '🔴' : ev.prioridade === 'media' ? '🟡' : '🟢';
+  const prioClass = 'prio-' + ev.prioridade;
+  const reagBadge = ev.reagendamentos > 0 ? `<span class="ev-reag-badge" title="${ev.reagendamentos}x reagendado">↺${ev.reagendamentos}</span>` : '';
+  return `
+    <div class="agenda-evento ${isEstudo ? 'ev-estudo' : 'ev-revisao'} ${ev.concluido ? 'ev-feito' : ''} ${prioClass}">
+      <div class="ev-left">
+        <div class="ev-tipo-badge ${isEstudo ? 'badge-estudo' : 'badge-revisao'}">${isEstudo ? '📖 Estudo' : '🔁 Revisão'}</div>
+        <div class="ev-materia">${ev.materia}${reagBadge}</div>
+      </div>
+      <div class="ev-right">
+        <span class="ev-prio" title="Prioridade ${ev.prioridade}">${prioIcon}</span>
+        <span class="ev-dur">⏱ ${ev.duracao}min</span>
+        <button class="ev-btn ${ev.concluido ? 'ev-btn-done' : 'ev-btn-pending'}" onclick="marcarConcluido('${ev.id}')">
+          ${ev.concluido ? '✔ Feito' : 'Marcar'}
+        </button>
+        <div class="ev-menu-wrap">
+          <button class="ev-menu-btn" onclick="toggleEvMenu('${ev.id}')">⋮</button>
+          <div class="ev-dropdown" id="evMenu_${ev.id}">
+            <button onclick="reagendarEvento('${ev.id}', 1); closeEvMenus()">📅 +1 dia</button>
+            <button onclick="reagendarEvento('${ev.id}', 3); closeEvMenus()">📅 +3 dias</button>
+            <button onclick="reagendarEvento('${ev.id}', 7); closeEvMenus()">📅 +1 semana</button>
+            <button class="ev-dd-danger" onclick="excluirEvento('${ev.id}')">🗑 Excluir</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function _eventoCardCompact(ev) {
+  const isEstudo = ev.tipo === 'Estudo';
+  return `
+    <div class="ev-pill ${isEstudo ? 'ev-pill-estudo' : 'ev-pill-revisao'} ${ev.concluido ? 'ev-pill-done' : ''}"
+         title="${ev.materia} — ${ev.tipo} (${ev.duracao}min)"
+         onclick="marcarConcluido('${ev.id}')">
+      <span class="evp-dot ${isEstudo ? 'dot-estudo' : 'dot-revisao'}"></span>
+      <span class="evp-nome">${ev.materia}</span>
+      ${ev.concluido ? '<span class="evp-check">✔</span>' : ''}
+    </div>`;
+}
+
+function trocarVisualizacaoAgenda(view) {
+  agendaView = view;
+  closeEvMenus();
+  document.getElementById('btnViewLista').classList.toggle('active',  view === 'lista');
+  document.getElementById('btnViewSemana').classList.toggle('active', view === 'semana');
+  const nav = document.getElementById('semanaNav');
+  if (nav) nav.style.display = view === 'semana' ? 'flex' : 'none';
+  if (view === 'semana') agendaSemanaOffset = 0;
+  renderizarGrade();
+}
+
+function navegarSemana(delta) {
+  agendaSemanaOffset += delta;
+  renderizarGrade();
+}
+
+function renderizarGrade() {
+  _atualizarStatsAgenda();
+  agendaView === 'semana' ? renderizarGradeSemana() : renderizarGradeLista();
+}
+
+function renderizarGradeLista() {
+  const grade = document.getElementById('grade');
+  if (!grade) return;
+
+  if (!agendaRevisoes.length) {
+    grade.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Gere a agenda para ver os eventos.</div></div>';
+    return;
+  }
+
+  const filtrados = agendaFiltroMateria === 'todas'
+    ? agendaRevisoes
+    : agendaRevisoes.filter(ev => ev.materia === agendaFiltroMateria);
+
+  const agrupado = _agendaGroupByDay(filtrados);
+  const hoje     = new Date().toISOString().split('T')[0];
+  const dias     = Object.keys(agrupado).sort();
+
+  const cargaSem  = calcularCargaSemanal();
+  const atrasados = agendaRevisoes.filter(ev => !ev.concluido && new Date(ev.data).toISOString().split('T')[0] < hoje).length;
+
+  let html = `
+    <div class="agenda-barra-filtro">
+      <div class="abf-left">
+        <select id="agendaFiltroMateriaSelect" class="abf-select" onchange="onFiltroMateriaAgendaChange()">
+          <option value="todas">Todas as matérias</option>
+        </select>
+        ${atrasados > 0 ? `<span class="abf-atrasados">${atrasados} atrasado${atrasados > 1 ? 's' : ''}</span>` : ''}
+      </div>
+      <div class="abf-right">
+        ${atrasados > 0 ? `<button class="btn btn-secondary btn-sm" onclick="reagendarAtrasados()">⚡ Reagendar atrasados</button>` : ''}
+        <button class="btn btn-primary btn-sm" onclick="abrirModalEventoManual()">➕ Evento</button>
+      </div>
+    </div>
+    <div class="agenda-carga-semana">
+      📆 Carga desta semana: <strong>${cargaSem} min</strong>
+      ${cargaSem >= 300 ? ' · 🔥 Semana intensa!' : cargaSem >= 120 ? ' · 👍 Bom ritmo!' : cargaSem > 0 ? ' · 💡 Leve por enquanto.' : ''}
+    </div>`;
+
+  if (!dias.length) {
+    html += `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Nenhum evento para este filtro.</div></div>`;
+    grade.innerHTML = html;
+    atualizarFiltroMateriaAgenda();
+    return;
+  }
+
+  html += dias.map(data => {
+    const info      = agrupado[data];
+    const eventos   = info.eventos;
+    const matSize   = info.materias.size;
+    const isHoje    = data === hoje;
+    const isPast    = data < hoje;
+    const dataObj   = new Date(data + 'T12:00:00');
+    const concl     = eventos.filter(e => e.concluido).length;
+    const pctDia    = eventos.length > 0 ? Math.round((concl / eventos.length) * 100) : 0;
+    const diaOk     = concl === eventos.length;
+    const dataFmt   = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+    const loadClass = matSize >= MAX_MATERIAS_POR_DIA ? 'load-full' : matSize >= 3 ? 'load-high' : matSize >= 2 ? 'load-med' : 'load-low';
+    const loadLabel = matSize >= MAX_MATERIAS_POR_DIA ? '🔴 Cheio' : matSize >= 3 ? '🟡 Ocupado' : matSize >= 2 ? '🟡 Moderado' : '🟢 Leve';
+    const fillClass = diaOk ? 'fill-green' : pctDia > 0 ? 'fill-yellow' : 'fill-muted';
+    const evHtml    = eventos
+      .sort((a, b) => ({ alta:0, media:1, baixa:2 }[a.prioridade] || 0) - ({ alta:0, media:1, baixa:2 }[b.prioridade] || 0))
+      .map(ev => _eventoCard(ev)).join('');
+    const btnDia  = diaOk
+      ? `<button class="dia-action-btn dia-action-desfazer" onclick="marcarDiaInteiro('${data}')">↩ Desmarcar tudo</button>`
+      : `<button class="dia-action-btn dia-action-marcar"   onclick="marcarDiaInteiro('${data}')">✔ Marcar tudo</button>`;
+
+    return `
+      <div class="dia-card-new ${isHoje ? 'dia-hoje' : ''} ${diaOk ? 'dia-completo' : ''} ${isPast && !diaOk ? 'dia-passado' : ''}">
+        <div class="dia-header-new">
+          <div class="dia-header-left">
+            ${isHoje ? '<span class="dia-hoje-badge">HOJE</span>' : ''}
+            ${isPast && !diaOk ? '<span class="dia-atrasado-badge">ATRASADO</span>' : ''}
+            <span class="dia-nome">${dataFmt}</span>
+          </div>
+          <div class="dia-header-right">
+            <span class="dia-load-badge ${loadClass}">${loadLabel}</span>
+            <span class="dia-count">${matSize}/${MAX_MATERIAS_POR_DIA} mat.</span>
+          </div>
+        </div>
+        <div class="dia-prog-row">
+          <div class="dia-prog-track"><div class="dia-prog-fill ${fillClass}" style="width:${pctDia}%"></div></div>
+          <span class="dia-prog-pct">${pctDia}%</span>
+        </div>
+        <div class="dia-eventos">${evHtml}</div>
+        <div class="dia-footer">
+          <span>⏱ ${info.carga} min</span>
+          <div class="dia-footer-actions">
+            ${btnDia}
+            <button class="dia-action-btn dia-action-add" onclick="abrirModalEventoManual('${data}')" title="Adicionar evento neste dia">＋</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  grade.innerHTML = html;
+  atualizarFiltroMateriaAgenda();
+}
+
+function renderizarGradeSemana() {
+  const grade = document.getElementById('grade');
+  if (!grade) return;
+
+  const hoje    = new Date(); hoje.setHours(0,0,0,0);
+  const hojeStr = hoje.toISOString().split('T')[0];
+  const dom     = new Date(hoje); dom.setDate(hoje.getDate() - hoje.getDay());
+  dom.setDate(dom.getDate() + agendaSemanaOffset * 7);
+
+  const semana  = Array.from({ length: 7 }, (_, i) => { const d = new Date(dom); d.setDate(dom.getDate() + i); return d; });
+  const agrupado = _agendaGroupByDay();
+  const diasNomes = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  const fmtR  = d => d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
+  const label = `${fmtR(semana[1])} – ${fmtR(semana[6])}, ${semana[1].getFullYear()}`;
+  const labelEl = document.getElementById('semanaNavLabel');
+  if (labelEl) labelEl.textContent = label;
+
+  const temEventos = semana.some(d => (agrupado[d.toISOString().split('T')[0]]?.eventos.length || 0) > 0);
+
+  const cols = semana.map((dObj, idx) => {
+    const dStr    = dObj.toISOString().split('T')[0];
+    const info    = agrupado[dStr];
+    const isHoje  = dStr === hojeStr;
+    const isPast  = dStr < hojeStr;
+    const isFds   = idx === 0 || idx === 6;
+    const eventos = info?.eventos || [];
+    const concl   = eventos.filter(e => e.concluido).length;
+    const diaOk   = eventos.length > 0 && concl === eventos.length;
+    const pills   = eventos
+      .sort((a, b) => ({ alta:0, media:1, baixa:2 }[a.prioridade] || 0) - ({ alta:0, media:1, baixa:2 }[b.prioridade] || 0))
+      .map(ev => _eventoCardCompact(ev)).join('');
+
+    return `
+      <div class="sem-col ${isHoje ? 'sem-hoje' : ''} ${isPast ? 'sem-passado' : ''} ${diaOk ? 'sem-completo' : ''} ${isFds ? 'sem-fds' : ''}">
+        <div class="sem-col-header">
+          <span class="sem-dia-nome">${diasNomes[idx]}</span>
+          <span class="sem-dia-num ${isHoje ? 'num-hoje' : ''}">${dObj.getDate()}</span>
+          ${isHoje ? '<span class="sem-hoje-dot"></span>' : ''}
+        </div>
+        <div class="sem-col-body">
+          ${pills || `<div class="sem-vazio">${isPast ? '—' : ''}</div>`}
+        </div>
+        ${info?.carga ? `<div class="sem-col-footer">⏱ ${info.carga}min</div>` : ''}
+      </div>`;
+  }).join('');
+
+  grade.innerHTML = `
+    <div class="semana-grid">${cols}</div>
+    ${!temEventos ? `<div class="sem-empty-week"><span>📭</span> Nenhum evento nesta semana.<br><small>Navegue ou gere a agenda.</small></div>` : ''}
+    <div class="sem-legenda">
+      <span class="sem-leg-item"><span class="evp-dot dot-estudo"></span> Estudo</span>
+      <span class="sem-leg-item"><span class="evp-dot dot-revisao"></span> Revisão</span>
+      <span class="sem-leg-item">🔴 Alta · 🟡 Média · 🟢 Baixa</span>
+      <span class="sem-leg-item sem-leg-done"><span class="evp-check">✔</span> Feito</span>
+    </div>`;
+}
+
+function marcarConcluido(id) {
+  const ev = agendaRevisoes.find(e => e.id === id);
+  if (!ev) return;
+  ev.concluido = !ev.concluido;
+
+  if (ev.tipo === 'Revisão') {
+    if (ev.concluido) {
+      if (!historicoRevisoesInteligentes[ev.materia]) historicoRevisoesInteligentes[ev.materia] = [];
+      const jaNoHist = historicoRevisoesInteligentes[ev.materia].some(h => h.dataOriginal === ev.data);
+      if (!jaNoHist) {
+        historicoRevisoesInteligentes[ev.materia].push({ dataOriginal: ev.data, dataConclusao: new Date().toISOString() });
+      }
+    } else {
+      const hist = historicoRevisoesInteligentes[ev.materia];
+      if (hist) {
+        const idx = hist.findIndex(h => h.dataOriginal === ev.data);
+        if (idx >= 0) hist.splice(idx, 1);
+        if (hist.length === 0) delete historicoRevisoesInteligentes[ev.materia];
+      }
+    }
+  }
+
+  if (ev.concluido && eventosAtivosDeMateria(ev.materia).length === 0) {
+    gerarEventosMateria(ev.materia);
+    toast(`Ciclo de "${ev.materia}" concluído! Próximo ciclo gerado 🎯`, 'success');
+  }
+
+  salvarDados(); renderizarGrade(); renderizarProximasRevisoes();
+}
+
+
+const POMO = { focoMin: 40, pausaCurtaMin: 5, pausaLongaMin: 15, ciclosParaPausaLonga: 4 };
+
+let pomoIntervalo        = null;
+let pomoRodando          = false;
+let pomoEtapa            = "foco";
+let pomoSegundos         = POMO.focoMin * 60;
+let pomoCiclosConcluidos = 0;
+
+function aplicarConfigPomo() {
+  POMO.focoMin       = parseInt(document.getElementById('cfgFoco').value)  || 40;
+  POMO.pausaCurtaMin = parseInt(document.getElementById('cfgCurta').value) || 5;
+  POMO.pausaLongaMin = parseInt(document.getElementById('cfgLonga').value) || 15;
+  if (!pomoRodando) pomoDefinirEtapa(pomoEtapa);
+}
+
+function pomoFormatar(seg) {
+  return `${String(Math.floor(seg / 60)).padStart(2, '0')}:${String(seg % 60).padStart(2, '0')}`;
+}
+
+function pomoCiclosUI() {
+  const txt  = document.getElementById('pomoCiclosTexto');
+  const dots = document.getElementById('pomoDots');
+  if (txt) txt.textContent = `Ciclo ${(pomoCiclosConcluidos % POMO.ciclosParaPausaLonga) + 1} de ${POMO.ciclosParaPausaLonga}`;
+  if (dots) {
+    const atual = pomoCiclosConcluidos % POMO.ciclosParaPausaLonga;
+    dots.querySelectorAll('.pomo-dot').forEach((d, i) => {
+      d.classList.toggle('ativo', i <= atual && pomoEtapa === 'foco');
+    });
+  }
+}
+
+function pomoUI() {
+  const el = document.getElementById("timer");
+  if (el) el.textContent = pomoFormatar(pomoSegundos);
+  const st = document.getElementById("pomodoroStatus");
+  if (st) st.textContent = pomoEtapa === 'foco' ? 'FOCO' : pomoEtapa === 'curta' ? 'PAUSA CURTA' : 'PAUSA LONGA';
+  pomoCiclosUI();
+  if (pomoRodando) document.title = `${pomoFormatar(pomoSegundos)} — Plataforma EstudaMed`;
+  else document.title = 'Plataforma EstudaMed';
+}
+
+function pomoDefinirEtapa(etapa) {
+  pomoEtapa = etapa;
+  if (etapa === "foco")  pomoSegundos = POMO.focoMin       * 60;
+  if (etapa === "curta") pomoSegundos = POMO.pausaCurtaMin * 60;
+  if (etapa === "longa") pomoSegundos = POMO.pausaLongaMin * 60;
+  pomoUI();
+}
+
+function pomoBeep() {
+  try {
+    const cfgSom = document.getElementById('cfgSom');
+    if (cfgSom && !cfgSom.checked) return;
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 880; g.gain.value = 0.05;
+    o.start(); setTimeout(() => { o.stop(); ctx.close(); }, 250);
+  } catch (e) {}
+}
+
+function pomoRegistrarSessao() {
+  const materia = document.getElementById('pomoMateriaSelect')?.value || '';
+  if (!materia || pomoEtapa !== 'foco') return;
+  const hoje = new Date().toDateString();
+  pomoSessoes.push({ materia, data: hoje, duracao: POMO.focoMin });
+  salvarDados();
+  atualizarPomoSessoes();
+  if (materias[materia]) atualizarStreak();
+}
+
+function atualizarPomoSessoes() {
+  const container = document.getElementById('pomoSessoesHoje');
+  if (!container) return;
+  const hoje = new Date().toDateString();
+  const sessoes = pomoSessoes.filter(s => s.data === hoje);
+  if (!sessoes.length) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:13px;">Nenhuma sessão concluída hoje.</div>';
+    return;
+  }
+  const totalMin = sessoes.reduce((acc, s) => acc + s.duracao, 0);
+  container.innerHTML = `
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">
+      ${sessoes.length} sessão(ões) — ${totalMin} min estudados hoje
+    </div>
+    ${sessoes.map(s => `
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);">
+        <span>${s.materia || '—'}</span>
+        <span style="color:var(--muted);">${s.duracao} min</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+function atualizarPomoMaterias() {
+  const select = document.getElementById('pomoMateriaSelect');
+  if (!select) return;
+  const nomes = Object.keys(materias);
+  select.innerHTML = '<option value="">— Selecionar matéria —</option>';
+  nomes.forEach(n => { select.innerHTML += `<option value="${n}">${n}</option>`; });
+}
+
+function pomoAvancar() {
+  pomoBeep();
+  if (pomoEtapa === "foco") {
+    pomoRegistrarSessao();
+    pomoCiclosConcluidos++;
+    pomoDefinirEtapa(pomoCiclosConcluidos % POMO.ciclosParaPausaLonga === 0 ? "longa" : "curta");
+    toast('Foco concluído! Hora de descansar. ☕', 'success');
+  } else {
+    pomoDefinirEtapa("foco");
+    toast('Pausa encerrada. Vamos focar! 🎯', 'info');
+  }
+}
+
+function pomodoroIniciar() {
+  if (pomoRodando) return;
+  pomoRodando = true;
+  if (pomoIntervalo) clearInterval(pomoIntervalo);
+  pomoIntervalo = setInterval(() => {
+    if (!pomoRodando) return;
+    pomoSegundos--;
+    if (pomoSegundos <= 0) pomoAvancar();
+    else pomoUI();
+  }, 1000);
+  pomoUI();
+}
+
+function pomodoroPausar() {
+  pomoRodando = false;
+  document.title = 'Plataforma EstudaMed';
+  toast('Pausado.', 'info');
+}
+
+function pomodoroReset() {
+  pomoRodando = false;
+  if (pomoIntervalo) clearInterval(pomoIntervalo);
+  pomoIntervalo = null;
+  pomoCiclosConcluidos = 0;
+  document.title = 'Plataforma EstudaMed';
+  pomoDefinirEtapa("foco");
+}
+
+function pomodoroPular() { pomoAvancar(); }
+
+let graficoProgresso = null;
+let graficoMeta      = null;
+let graficoAprov     = null;
+
+function atualizarDashboard() {
+  const semana         = obterSemanaAtual();
+  const progressoAtual = progressoSemanal[semana] || {};
+  const labels = [], dadosFeitos = [], dadosPercentual = [], dadosAprov = [];
+
+  for (let nome in metasPorMateria) {
+    labels.push(nome);
+    const meta  = metasPorMateria[nome] || 0;
+    const feito = progressoAtual[nome]  || 0;
+    dadosFeitos.push(feito);
+    dadosPercentual.push(meta > 0 ? +((feito / meta) * 100).toFixed(1) : 0);
+  }
+
+  for (let nome in materias) {
+    const d = materias[nome];
+    const t = d.totalAcertos + d.totalErros;
+    if (t > 0) dadosAprov.push({ nome, pct: +((d.totalAcertos / t) * 100).toFixed(1) });
+  }
+
+  const ctx1 = document.getElementById("graficoProgresso");
+  const ctx2 = document.getElementById("graficoDesempenho");
+  const ctx3 = document.getElementById("graficoAproveitamento");
+  if (!ctx1 || !ctx2 || !ctx3) return;
+
+  if (graficoProgresso) graficoProgresso.destroy();
+  if (graficoMeta)      graficoMeta.destroy();
+  if (graficoAprov)     graficoAprov.destroy();
+
+  const baseOpts = {
+    responsive: true, animation: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        bodyFont: { family: 'DM Sans' },
+        titleFont: { family: 'Syne', weight: '700' },
+        backgroundColor: 'rgba(15,15,26,0.95)',
+        borderColor: 'rgba(255,255,255,0.08)',
+        borderWidth: 1
+      }
+    },
+    scales: {
+      x: { ticks: { color: '#555570', font: { family: 'DM Sans', size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { ticks: { color: '#555570', font: { family: 'DM Sans', size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+    }
+  };
+
+  graficoProgresso = new Chart(ctx1, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Questões", data: dadosFeitos,
+        backgroundColor: 'rgba(108,92,231,0.55)',
+        borderColor: '#6c5ce7', borderWidth: 2, borderRadius: 7
+      }]
+    },
+    options: baseOpts
+  });
+
+  graficoMeta = new Chart(ctx2, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "% da Meta", data: dadosPercentual,
+        backgroundColor: dadosPercentual.map(v => v >= 100 ? 'rgba(0,206,201,0.55)' : v >= 50 ? 'rgba(253,203,110,0.55)' : 'rgba(255,86,117,0.55)'),
+        borderColor: dadosPercentual.map(v => v >= 100 ? '#00cec9' : v >= 50 ? '#fdcb6e' : '#ff5675'),
+        borderWidth: 2, borderRadius: 7
+      }]
+    },
+    options: baseOpts
+  });
+
+  if (dadosAprov.length) {
+    graficoAprov = new Chart(ctx3, {
+      type: "bar",
+      data: {
+        labels: dadosAprov.map(d => d.nome),
+        datasets: [{
+          label: "Aproveitamento %", data: dadosAprov.map(d => d.pct),
+          backgroundColor: dadosAprov.map(d => d.pct >= 80 ? 'rgba(0,206,201,0.55)' : d.pct >= 60 ? 'rgba(253,203,110,0.55)' : 'rgba(255,86,117,0.55)'),
+          borderColor: dadosAprov.map(d => d.pct >= 80 ? '#00cec9' : d.pct >= 60 ? '#fdcb6e' : '#ff5675'),
+          borderWidth: 2, borderRadius: 7
+        }]
+      },
+      options: {
+        ...baseOpts,
+        scales: {
+          ...baseOpts.scales,
+          y: { ...baseOpts.scales.y, min: 0, max: 100 }
+        }
+      }
+    });
+  } else {
+    ctx3.parentElement.innerHTML += '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;">Registre questões para ver o gráfico.</div>';
+  }
+}
+
+function salvarDados() {
+  localStorage.setItem(plannerStorageKey("planner_dados_v3"), JSON.stringify({
+    materias, metasPorMateria, historicoMetas, progressoSemanal,
+    agendaRevisoes, historicoRevisoesInteligentes, materiasConcluidas,
+    semanaUltimaVista, streakDias, ultimoDiaEstudo, pomoSessoes
+  }));
+  if (window.estudaMedSync) window.estudaMedSync.schedule();
+}
+
+function carregarDados() {
+  const raw = localStorage.getItem(plannerStorageKey("planner_dados_v3"))
+           || localStorage.getItem(plannerStorageKey("planner_dados_v2"))
+           || localStorage.getItem(plannerStorageKey("planner_dados"));
+  if (!raw) return;
+
+  const p = JSON.parse(raw);
+  materias                      = p.materias                      || {};
+  historicoRevisoesInteligentes = p.historicoRevisoesInteligentes || {};
+  metasPorMateria               = p.metasPorMateria               || {};
+  historicoMetas                = p.historicoMetas                || {};
+  materiasConcluidas            = p.materiasConcluidas            || {};
+  progressoSemanal              = p.progressoSemanal              || {};
+  agendaRevisoes                = p.agendaRevisoes                || [];
+  streakDias                    = p.streakDias                    || 0;
+  ultimoDiaEstudo               = p.ultimoDiaEstudo               || null;
+  pomoSessoes                   = p.pomoSessoes                   || [];
+  semanaUltimaVista             = p.semanaUltimaVista ?? obterSemanaAtual();
+
+  for (let nome in materias) {
+    if (metasPorMateria[nome] === undefined) metasPorMateria[nome] = metaAutomatica(nome);
+  }
+
+  migrarAgendaRevisoes();
+
+  limparMetasOrfas();
+}
+
+function migrarAgendaRevisoes() {
+  const materiasList = [...new Set(agendaRevisoes.map(ev => ev.materia))];
+
+  materiasList.forEach(nome => {
+    const ativos    = agendaRevisoes.filter(ev => ev.materia === nome && !ev.concluido);
+    const estudos   = ativos.filter(ev => ev.tipo === 'Estudo')
+                            .sort((a, b) => new Date(a.data) - new Date(b.data));
+    const revisoes  = ativos.filter(ev => ev.tipo === 'Revisão')
+                            .sort((a, b) => new Date(a.data) - new Date(b.data));
+
+    const estudosExcesso = estudos.slice(1).map(e => e.id);
+    const revisoesExcesso = revisoes.slice(2).map(e => e.id);
+
+    const remover = new Set([...estudosExcesso, ...revisoesExcesso]);
+    if (remover.size > 0) {
+      agendaRevisoes = agendaRevisoes.filter(ev => !remover.has(ev.id));
+    }
+  });
+}
+
+function resetarSistema() {
+  if (!confirm("Apagar TODOS os dados do planner? Esta ação não pode ser desfeita.")) return;
+  ['planner_dados', 'planner_dados_v2', 'planner_dados_v3'].forEach(k => localStorage.removeItem(plannerStorageKey(k)));
+  location.reload();
+}
+
+function exportarDados() {
+  const raw = localStorage.getItem(plannerStorageKey("planner_dados_v3"));
+  if (!raw) { toast('Nenhum dado para exportar.', 'warning'); return; }
+  const blob = new Blob([raw], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `planner-de-estudos-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('Backup exportado!', 'success');
+}
+
+function importarDados(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.materias) { toast('Arquivo inválido.', 'error'); return; }
+      localStorage.setItem(plannerStorageKey("planner_dados_v3"), JSON.stringify(data));
+      toast('Backup importado! Recarregando...', 'success');
+      setTimeout(() => location.reload(), 1200);
+    } catch {
+      toast('Erro ao ler o arquivo.', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+const toggleBtn = document.getElementById("toggleTheme");
+
+function aplicarTemaSalvo() {
+  const tema = localStorage.getItem(plannerStorageKey("tema"));
+  const cfgTema = document.getElementById('cfgTema');
+  if (tema === "light") {
+    document.body.classList.add("light-mode");
+    if (toggleBtn) toggleBtn.textContent = "☀️ Light";
+    if (cfgTema) cfgTema.checked = true;
+  } else {
+    if (toggleBtn) toggleBtn.textContent = "🌙 Dark";
+    if (cfgTema) cfgTema.checked = false;
+  }
+}
+
+function alternarTema() {
+  document.body.classList.toggle("light-mode");
+  const isLight = document.body.classList.contains("light-mode");
+  localStorage.setItem(plannerStorageKey("tema"), isLight ? "light" : "dark");
+  if (toggleBtn) toggleBtn.textContent = isLight ? "☀️ Light" : "🌙 Dark";
+  const cfgTema = document.getElementById('cfgTema');
+  if (cfgTema) cfgTema.checked = isLight;
+  if (window.estudaMedSync) window.estudaMedSync.schedule();
+}
+
+function alternarTemaConfig() {
+  alternarTema();
+}
+
+if (toggleBtn) toggleBtn.addEventListener("click", alternarTema);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.activeElement.id === 'erros') {
+    registrarBloco();
+  }
+  if (e.ctrlKey && e.key >= '1' && e.key <= '7') {
+    const abas = ['desempenho','metas','revisoes','agenda','pomodoro','dashboard','configuracoes'];
+    const idx  = parseInt(e.key) - 1;
+    if (abas[idx]) mostrarPainel(abas[idx]);
+    e.preventDefault();
+  }
+});
+
+window.initPlannerApp = function initPlannerApp() {
+  if (window.__plannerReady) return;
+  window.__plannerReady = true;
+  carregarDados();
+  aplicarTemaSalvo();
+  detectarTrocaDeSemanaEFechar();
+  gerarEventosTodasMaterias();
+
+  atualizarDesempenho();
+  atualizarStatsSummary();
+  atualizarMetasVisuais();
+  atualizarHistorico();
+  atualizarDashboard();
+  renderizarMateriasConcluidas();
+  renderizarHistoricoRevisoesInteligentes();
+  renderizarGrade();
+  renderizarProximasRevisoes();
+  pomoDefinirEtapa("foco");
+  atualizarDatalist();
+  atualizarPomoMaterias();
+  atualizarPomoSessoes();
+  atualizarInfoSemana();
+
+  document.getElementById('streakCount').textContent = streakDias;
+};
+
+</script>
+<script>
+
+let graficoPizzaAcertosErros = null;
+let graficoBarrasQuestoesMateria = null;
+let estudamedInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  estudamedInstallPrompt = event;
+});
+
+function totalQuestoesPorMateria() {
+  return Object.entries(materias)
+    .map(([nome, dados]) => ({
+      nome,
+      acertos: dados.totalAcertos || 0,
+      erros: dados.totalErros || 0,
+      total: (dados.totalAcertos || 0) + (dados.totalErros || 0)
+    }))
+    .filter(item => item.total > 0)
+    .sort((a, b) => b.total - a.total);
+}
+
+function atualizarGraficosExtrasEstudaMed() {
+  const pizzaCanvas = document.getElementById("graficoPizzaAcertosErros");
+  const barrasCanvas = document.getElementById("graficoBarrasQuestoesMateria");
+  if (!pizzaCanvas || !barrasCanvas || !window.Chart) return;
+
+  const dados = totalQuestoesPorMateria();
+  const totalAcertos = dados.reduce((sum, item) => sum + item.acertos, 0);
+  const totalErros = dados.reduce((sum, item) => sum + item.erros, 0);
+  const totalGeral = totalAcertos + totalErros;
+  const pizzaNota = document.getElementById("graficoPizzaNota");
+  const barrasNota = document.getElementById("graficoBarrasNota");
+
+  if (graficoPizzaAcertosErros) graficoPizzaAcertosErros.destroy();
+  if (graficoBarrasQuestoesMateria) graficoBarrasQuestoesMateria.destroy();
+
+  const tooltip = {
+    bodyFont: { family: "DM Sans" },
+    titleFont: { family: "Syne", weight: "700" },
+    backgroundColor: "rgba(15,15,26,0.95)",
+    borderColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1
+  };
+
+  if (totalGeral > 0) {
+    if (pizzaNota) pizzaNota.textContent = "";
+    graficoPizzaAcertosErros = new Chart(pizzaCanvas, {
+      type: "pie",
+      data: {
+        labels: ["Acertos", "Erros"],
+        datasets: [{
+          data: [totalAcertos, totalErros],
+          backgroundColor: ["rgba(0,206,201,0.78)", "rgba(255,86,117,0.78)"],
+          borderColor: ["#00cec9", "#ff5675"],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: "bottom",
+            labels: { color: "#a0a0c0", font: { family: "DM Sans", size: 12 } }
+          },
+          tooltip
+        }
+      }
+    });
+  } else if (pizzaNota) {
+    pizzaNota.textContent = "Registre questões para preencher o gráfico de pizza.";
+  }
+
+  if (dados.length) {
+    if (barrasNota) barrasNota.textContent = "";
+    const top = dados.slice(0, 12);
+    graficoBarrasQuestoesMateria = new Chart(barrasCanvas, {
+      type: "bar",
+      data: {
+        labels: top.map(item => item.nome),
+        datasets: [{
+          label: "Questões",
+          data: top.map(item => item.total),
+          backgroundColor: top.map((_, idx) => idx % 2 === 0 ? "rgba(108,92,231,0.62)" : "rgba(0,206,201,0.62)"),
+          borderColor: top.map((_, idx) => idx % 2 === 0 ? "#6c5ce7" : "#00cec9"),
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        plugins: { legend: { display: false }, tooltip },
+        scales: {
+          x: { ticks: { color: "#555570", font: { family: "DM Sans", size: 10 }, maxRotation: 35, minRotation: 0 }, grid: { color: "rgba(255,255,255,0.04)" } },
+          y: { beginAtZero: true, ticks: { color: "#555570", font: { family: "DM Sans", size: 11 }, precision: 0 }, grid: { color: "rgba(255,255,255,0.04)" } }
+        }
+      }
+    });
+  } else if (barrasNota) {
+    barrasNota.textContent = "As barras aparecem depois que você registrar matérias.";
+  }
+}
+
+if (typeof atualizarDashboard === "function") {
+  const atualizarDashboardOriginalEstudaMed = atualizarDashboard;
+  atualizarDashboard = function atualizarDashboardComGraficosExtras() {
+    atualizarDashboardOriginalEstudaMed();
+    atualizarGraficosExtrasEstudaMed();
+  };
+}
+
+function eventosCronogramaParaExportar() {
+  return agendaRevisoes
+    .slice()
+    .sort((a, b) => new Date(a.data) - new Date(b.data));
+}
+
+function dataEventoPt(dataIso) {
+  return new Date(dataIso).toLocaleDateString("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+
+function baixarArquivoTexto(nome, conteudo, tipo) {
+  const blob = new Blob([conteudo], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function baixarCronogramaDesktop() {
+  const eventos = eventosCronogramaParaExportar();
+  if (!eventos.length) {
+    toast("Gere a agenda antes de baixar o cronograma.", "warning");
+    return;
+  }
+  const linhas = eventos.map(ev => {
+    const status = ev.concluido ? "Concluído" : "Pendente";
+    const cor = ev.tipo === "Revisão" ? "#6c5ce7" : "#00a8c7";
+    return "<tr>" +
+      "<td>" + dataEventoPt(ev.data) + "</td>" +
+      "<td><span style='background:" + cor + ";color:white;padding:4px 8px;border-radius:999px'>" + ev.tipo + "</span></td>" +
+      "<td>" + ev.materia + "</td>" +
+      "<td>" + (ev.duracao || 40) + " min</td>" +
+      "<td>" + status + "</td>" +
+    "</tr>";
+  }).join("");
+  const totalPendentes = eventos.filter(ev => !ev.concluido).length;
+  const totalRevisoes = eventos.filter(ev => ev.tipo === "Revisão").length;
+  const html = "<!DOCTYPE html><html lang='pt-br'><head><meta charset='UTF-8'>" +
+    "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+    "<title>Cronograma EstudaMed</title>" +
+    "<style>body{font-family:Arial,sans-serif;margin:0;background:#eef4ff;color:#172033}main{max-width:980px;margin:0 auto;padding:28px}header{background:linear-gradient(135deg,#10295c,#00a8c7);color:white;padding:28px;border-radius:0 0 24px 24px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.card{background:white;border-radius:16px;padding:16px;box-shadow:0 12px 30px rgba(23,32,51,.10)}.val{font-size:28px;font-weight:800}table{width:100%;border-collapse:collapse;background:white;border-radius:18px;overflow:hidden;box-shadow:0 12px 30px rgba(23,32,51,.10)}th,td{text-align:left;padding:13px;border-bottom:1px solid #e8edf7}th{background:#f7faff;color:#52627d;font-size:12px;text-transform:uppercase}tr:last-child td{border-bottom:0}@media(max-width:700px){.cards{grid-template-columns:1fr}th,td{font-size:13px;padding:10px}}</style>" +
+    "</head><body><header><main><h1>Cronograma EstudaMed</h1><p>Agenda e revisões exportadas em " + new Date().toLocaleString("pt-BR") + ".</p></main></header>" +
+    "<main><section class='cards'><div class='card'><div class='val'>" + eventos.length + "</div><div>eventos totais</div></div><div class='card'><div class='val'>" + totalPendentes + "</div><div>pendentes</div></div><div class='card'><div class='val'>" + totalRevisoes + "</div><div>revisões</div></div></section>" +
+    "<table><thead><tr><th>Data</th><th>Tipo</th><th>Matéria</th><th>Duração</th><th>Status</th></tr></thead><tbody>" + linhas + "</tbody></table></main></body></html>";
+  baixarArquivoTexto("cronograma-estudamed-area-de-trabalho.html", html, "text/html;charset=utf-8");
+  toast("Cronograma baixado. Mova o arquivo para a área de trabalho.", "success");
+}
+
+function icsDate(dateIso) {
+  const d = new Date(dateIso);
+  return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+function exportarCronogramaICS() {
+  const eventos = eventosCronogramaParaExportar();
+  if (!eventos.length) {
+    toast("Gere a agenda antes de exportar o calendário.", "warning");
+    return;
+  }
+  const escapeIcs = text => String(text || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+  const linhas = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//EstudaMed//Cronograma//PT-BR"
+  ];
+  eventos.forEach(ev => {
+    const inicio = new Date(ev.data);
+    const fim = new Date(inicio);
+    fim.setMinutes(fim.getMinutes() + (ev.duracao || 40));
+    linhas.push("BEGIN:VEVENT");
+    linhas.push("UID:" + (ev.id || crypto.randomUUID()) + "@estudamed");
+    linhas.push("DTSTAMP:" + icsDate(new Date().toISOString()));
+    linhas.push("DTSTART:" + icsDate(inicio.toISOString()));
+    linhas.push("DTEND:" + icsDate(fim.toISOString()));
+    linhas.push("SUMMARY:" + escapeIcs(ev.tipo + " - " + ev.materia));
+    linhas.push("DESCRIPTION:" + escapeIcs("Cronograma EstudaMed: " + ev.tipo + " de " + ev.materia));
+    linhas.push("END:VEVENT");
+  });
+  linhas.push("END:VCALENDAR");
+  baixarArquivoTexto("cronograma-estudamed.ics", linhas.join("\r\n"), "text/calendar;charset=utf-8");
+  toast("Arquivo .ics baixado para importar no calendário.", "success");
+}
+
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  window.initPlannerApp?.();
+});
+</script>
+</body>
+</html>
